@@ -1,5 +1,7 @@
 # CortexState
 
+[![CortexState checks](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml/badge.svg)](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml)
+
 **Memory your application can inspect, scope, revise, and forget.**
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve relevant context, and track changes without tying your application to one model provider. Run the Python library in your application or expose it through an authenticated HTTP service.
@@ -7,6 +9,30 @@ CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store
 **Status: 0.1.0 developer preview.** The core works without API keys, model calls, or runtime dependencies. This is a working foundation, not feature parity with an established managed memory platform. See [capabilities and roadmap](docs/CAPABILITIES.md) before choosing it for production.
 
 [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Customization](docs/CUSTOMIZATION.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
+
+## Start with your use case
+
+CortexState keeps useful facts separate from a conversation transcript. Your application decides what deserves to be remembered, which scope owns it, and when it should expire. A later request retrieves a small, inspectable set of facts instead of blindly replaying the entire conversation.
+
+| You want to… | Start here |
+| --- | --- |
+| Try memory locally in a few minutes | [Step-by-step getting started](docs/GETTING-STARTED.md) |
+| Understand the write, retrieval, and deletion paths | [Architecture and diagrams](docs/ARCHITECTURE.md) |
+| Add memory to an existing agent or application | [Integration patterns](docs/INTEGRATION-PATTERNS.md) |
+| Build a support assistant, coding helper, or workflow agent | [Practical use cases](docs/USE-CASES.md) |
+| Choose scopes, retention, and retrieval settings | [Customization](docs/CUSTOMIZATION.md) |
+| Operate the service and handle failures | [Operations](docs/OPERATIONS.md) and [FAQ](docs/FAQ.md) |
+| Find all documentation | [Documentation index](docs/README.md) |
+
+### Choose how to run it
+
+| Mode | Best fit | What you provide |
+| --- | --- | --- |
+| Embedded Python | One trusted application with a local database | Database path and explicit scopes |
+| Private HTTP service | Multiple trusted backend clients | Tenant key mapping, persistent storage, application authorization |
+| Container recipe | Repeatable local service setup | Docker, credentials, and the named data volume |
+
+All three use the same memory engine. There is no CortexState hosted account or managed cloud service in this release.
 
 ## What you can do
 
@@ -137,6 +163,19 @@ python -m evals.run --out work/eval.json
 ```
 
 The eval writes a fresh report with actual outcomes, latency, environment information, and source hashes. It refuses to overwrite an existing result. The public fixture tests basic retrieval and isolation; it does not establish LLM quality, token savings, or superiority to other products. [Protocol and recorded results](evals/README.md).
+
+## A complete memory lifecycle
+
+Run `python -m examples.support_workflow` for a synthetic customer-support example. It stores a confirmed preference, retries the same write, assembles context, corrects the preference using its revision, inspects history, checks customer isolation, and deletes the record. It requires no model key and makes no external calls. [Example catalog](examples/README.md).
+
+## Design principles
+
+- **Explicit ownership:** every read and write belongs to one exact scope.
+- **Reviewable change:** facts have IDs, revisions, provenance metadata, and history.
+- **Controlled recall:** retrieval explains its scores and context has a fixed character budget.
+- **Deliberate retention:** expiry and deletion have documented, distinct effects.
+- **Provider choice:** model integrations are supplied by your application; the default core is offline.
+- **Evidence before claims:** published results name the fixture, environment, and limitations.
 
 ## Project map
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Documentation and adoption update
+
+- Expanded CortexState architecture with request sequence, storage, lifecycle, and deployment diagrams.
+- Added guided installation, use cases, integration patterns, FAQ, and a documentation index.
+- Added a runnable offline support workflow and included it in CI.
+
 ## 0.1.0 — initial developer preview
 
 - Original SQLite memory engine with exact scopes, revision history, TTL, deletion, and idempotent writes.

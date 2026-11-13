@@ -6,7 +6,8 @@
 flowchart TB
   subgraph Caller[Trusted application boundary]
     U[Authenticated end user] --> APP[Application authorization and consent]
-    APP --> SDK[Python library or HTTP client]
+    APP --> SDK[HTTP client]
+    APP --> LOCAL[Embedded Python library]
     APP --> EXT[Optional extraction callable]
     EXT --> REVIEW[Validated proposals with source indices]
     REVIEW --> APP
@@ -14,6 +15,7 @@ flowchart TB
   subgraph Service[CortexState service boundary]
     SDK --> AUTH[Bearer key maps to tenant]
     AUTH --> VALID[Validate payload and construct exact Scope]
+    LOCAL --> VALID
     VALID --> WRITE{Write operation}
     WRITE --> IDEM[Replay fingerprint check]
     WRITE --> REV[Expected revision check]
@@ -40,6 +42,121 @@ flowchart TB
 ```
 
 The in-process Python library bypasses HTTP authentication: possession of the database is the trust boundary. `Scope` is mandatory for all memory operations. Neither the library nor HTTP API supports wildcard tenants or users.
+
+## Request sequence
+
+This example uses HTTP; an embedded application starts at the engine step after constructing its own scope.
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant App as Trusted application
+  participant API as CortexState HTTP
+  participant Engine as Memory engine
+  participant DB as SQLite
+  User->>App: Confirm a preference
+  App->>App: Check authorization and consent
+  App->>API: Add fact, user scope, idempotency key
+  API->>API: Validate bearer key and assign tenant
+  API->>Engine: Add with exact Scope
+  Engine->>DB: Begin write transaction and check retry receipt
+  alt Matching live receipt already exists
+    DB-->>Engine: Original add response
+  else Conflicting or expired receipt
+    Engine-->>API: Conflict without a new write
+    API-->>App: HTTP 409
+  else New request
+    Engine->>DB: Write memory, history, and receipt atomically
+    DB-->>Engine: Commit
+  end
+  opt Successful add or replay
+    Engine-->>API: Memory ID and revision
+    API-->>App: Successful result
+  end
+  User->>App: Ask a later question
+  App->>API: Query with same user, agent, and session
+  API->>Engine: Search authorized tenant scope
+  Engine->>DB: Select unexpired scoped memories
+  DB-->>Engine: Candidate facts
+  Engine->>Engine: Filter, score, rank, and budget context
+  Engine-->>API: Untrusted JSON context and memory IDs
+  API-->>App: Successful result
+  App->>App: Apply model instructions and tool policy
+  App-->>User: Application response
+```
+
+## Storage model
+
+```mermaid
+erDiagram
+  MEMORIES ||--o{ EVENTS : "application-managed history"
+  MEMORIES ||--o{ REQUESTS : "application-managed replay receipts"
+  MEMORIES {
+    text id PK
+    text scope
+    text text
+    text metadata
+    text vector
+    integer revision
+    real created
+    real updated
+    real expires
+  }
+  EVENTS {
+    integer seq PK
+    text id
+    text scope
+    integer revision
+    text action
+    real at
+    text snapshot
+  }
+  REQUESTS {
+    text scope "composite primary key"
+    text key "composite primary key"
+    text fingerprint
+    text response
+    text memory_id
+  }
+  CONFIG {
+    text key PK
+    text value
+  }
+```
+
+These are logical relationships maintained by engine transactions, not SQL foreign-key constraints. `scope` is a serialized four-element identifier tuple. Metadata, vectors, snapshots, and replay responses are serialized JSON. `CONFIG` records embedding identity and dimensions. There is no separate vector database in this release.
+
+## Memory lifecycle
+
+```mermaid
+stateDiagram-v2
+  [*] --> Proposed: Optional extraction
+  Proposed --> Live: Application approves and adds
+  [*] --> Live: Add an authorized confirmed fact
+  Live --> Live: Revision-checked correction
+  Live --> Expired: TTL reached
+  Live --> Removed: Explicit delete with matching revision
+  Expired --> Removed: Explicit purge or revision-checked delete
+  Removed --> [*]
+```
+
+`Proposed` is an application-level object, not a database row. `Expired` is computed from the timestamp, not a background job. Expired records remain available through history until removed. Re-adding a deleted fact creates a new ID; removed memories are not restored automatically.
+
+## Deployment and responsibility
+
+```mermaid
+flowchart LR
+  USER[User interface] --> BACKEND[Your backend: identity, consent, authorization]
+  BACKEND -->|Embedded mode| LIB[CortexState Python engine]
+  BACKEND -->|Service mode with tenant key| GATE[Your TLS and traffic gateway]
+  GATE --> HTTP[CortexState HTTP adapter]
+  HTTP --> LIB
+  LIB --> DATA[(Persistent SQLite storage)]
+  LIB -. Optional embedding callable .-> PROVIDER[Your chosen embedding provider]
+  BACKEND -. Optional model call .-> MODEL[Your chosen language model]
+```
+
+The gateway and model providers are application infrastructure, not bundled CortexState services. The bundled Compose configuration exposes only a loopback port. A browser should call your backend, which keeps tenant credentials private and enforces per-user permissions.
 
 ## Write semantics
 
