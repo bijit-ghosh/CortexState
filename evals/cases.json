@@ -1,0 +1,24 @@
+{
+  "description": "Small public synthetic lexical retrieval regression fixture; not a general memory benchmark",
+  "memories": [
+    {"key": "drink", "text": "Alice drinks decaf coffee after lunch"},
+    {"key": "editor", "text": "Alice uses vim as her editor"},
+    {"key": "diet", "text": "Alice eats vegetarian meals"},
+    {"key": "travel", "text": "Alice travels to Berlin in December"},
+    {"key": "language", "text": "Alice writes services in Python"},
+    {"key": "theme", "text": "Alice prefers dark mode"},
+    {"key": "meeting", "text": "Alice schedules meetings on Tuesday"},
+    {"key": "pet", "text": "Alice owns a cat named Luna"}
+  ],
+  "queries": [
+    {"query": "coffee lunch", "expected": "drink"},
+    {"query": "vim editor", "expected": "editor"},
+    {"query": "vegetarian meals", "expected": "diet"},
+    {"query": "Berlin December", "expected": "travel"},
+    {"query": "Python services", "expected": "language"},
+    {"query": "dark mode", "expected": "theme"},
+    {"query": "meetings Tuesday", "expected": "meeting"},
+    {"query": "cat Luna", "expected": "pet"},
+    {"query": "astronaut telescope", "expected": null}
+  ]
+}

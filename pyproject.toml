@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cortexstate"
+version = "0.1.0"
+description = "Inspectable, scoped memory for AI applications"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Bijit Ghosh"}]
+dependencies = []
+
+[project.scripts]
+cortexstate = "cortexstate.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["cortexstate*"]
