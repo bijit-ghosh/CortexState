@@ -10,6 +10,14 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class Client:
+    LEARNING_PATHS = {
+        "learning-record": "record", "learning-list": "list", "learning-candidates": "candidates",
+        "learning-propose": "propose", "learning-evaluate": "evaluate",
+        "learning-promote": "promote", "learning-reject": "reject",
+        "learning-rollback": "rollback",
+        "learning-delete-experience": "delete-experience",
+    }
+
     def __init__(self, url, api_key, *, timeout=15):
         parsed = urlsplit(url)
         if parsed.scheme not in ("http", "https") or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
@@ -19,9 +27,11 @@ class Client:
         self.url, self.api_key, self.timeout = url.rstrip("/"), api_key, timeout
 
     def call(self, operation, *, scope, **payload):
-        if operation not in ("add", "get", "list", "search", "update", "delete", "history", "context", "stats", "propose", "answer", "purge-expired"):
+        if operation not in ("add", "get", "list", "search", "update", "delete", "history", "context", "stats", "propose", "answer", "purge-expired", *self.LEARNING_PATHS):
             raise ValueError("unknown operation")
-        request = Request(f"{self.url}/v1/memories/{operation}",
+        route = (f"/v1/learning/{self.LEARNING_PATHS[operation]}" if operation in self.LEARNING_PATHS
+                 else f"/v1/memories/{operation}")
+        request = Request(f"{self.url}{route}",
                           json.dumps({**payload, "scope": scope}, allow_nan=False).encode(),
                           {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"})
         with build_opener(NoRedirect).open(request, timeout=self.timeout) as response:
@@ -62,3 +72,31 @@ class Client:
 
     def answer(self, question, *, scope):
         return self.call('answer', scope=scope, question=question)
+
+    def record_experience(self, *, scope, **experience):
+        return self.call("learning-record", scope=scope, **experience)
+
+    def list_experiences(self, *, scope, **options):
+        return self.call("learning-list", scope=scope, **options)
+
+    def list_learning_candidates(self, *, scope, **options):
+        return self.call("learning-candidates", scope=scope, **options)
+
+    def propose_lesson(self, *, scope, **candidate):
+        return self.call("learning-propose", scope=scope, **candidate)
+
+    def evaluate_lesson(self, identifier, *, scope, **scorecard):
+        return self.call("learning-evaluate", scope=scope, identifier=identifier, **scorecard)
+
+    def promote_lesson(self, identifier, *, scope, approved_by):
+        return self.call("learning-promote", scope=scope, identifier=identifier, approved_by=approved_by)
+
+    def reject_lesson(self, identifier, *, scope, reason):
+        return self.call("learning-reject", scope=scope, identifier=identifier, reason=reason)
+
+    def rollback_lesson(self, identifier, *, scope, expected_revision):
+        return self.call("learning-rollback", scope=scope, identifier=identifier,
+                         expected_revision=expected_revision)
+
+    def delete_experience(self, identifier, *, scope):
+        return self.call("learning-delete-experience", scope=scope, identifier=identifier)

@@ -2,13 +2,13 @@
 
 [![CortexState checks](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml/badge.svg)](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml)
 
-<p align="center"><img src="assets/cortexstate-banner.svg" alt="CortexState: scoped, inspectable memory with retrieval and revision history" width="100%"></p>
+<p align="center"><img src="assets/cortexstate-banner.svg" alt="CortexState: shared memory and evidence-gated improvement for models, harnesses, and skills" width="100%"></p>
 
-**Memory your application can inspect, scope, revise, and forget.**
+**One inspectable memory and improvement layer for every model, harness, and skill.**
 
-CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve relevant context, and track changes without tying your application to one model provider. Run the Python library in your application or expose it through an authenticated HTTP service.
+CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve scoped context, record deployment outcomes, and promote reusable lessons only after evaluation and approval. Use it through Python, TypeScript, or its authenticated HTTP API; model and harness identities are provenance, not dependencies.
 
-**Version 0.3.0 — developer preview.** CortexState combines a memory API, a live operator dashboard, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Opt-in model-backed embeddings, extraction, and answers remain provider-configurable. See [capabilities](docs/CAPABILITIES.md) for the implemented scope and deployment limits.
+**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Models and harnesses may change; experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) for implemented scope and deployment limits.
 
 [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Customization](docs/CUSTOMIZATION.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
@@ -20,6 +20,7 @@ CortexState keeps useful facts separate from a conversation transcript. Your app
 | --- | --- |
 | Start local memory with one command | [Quick launch and setup](docs/GETTING-STARTED.md) |
 | Understand the write, retrieval, and deletion paths | [Architecture and diagrams](docs/ARCHITECTURE.md) |
+| Turn production outcomes into reusable, evaluated lessons | [Continual improvement guide](docs/CONTINUAL-IMPROVEMENT.md) |
 | Add memory to an existing agent or application | [Integration patterns](docs/INTEGRATION-PATTERNS.md) |
 | Build a support assistant, coding helper, or workflow agent | [Practical use cases](docs/USE-CASES.md) |
 | Choose scopes, retention, and retrieval settings | [Customization](docs/CUSTOMIZATION.md) |
@@ -51,6 +52,10 @@ All three use the same memory engine. There is no CortexState hosted account or 
 | Use a different model | Supply your own embedding or fact-extraction callable |
 | Connect another runtime | Python HTTP client and JavaScript client for trusted backend services |
 | Accelerate BM25 ranking | Optional Rust companion wheel scores a document batch; Python reference path remains available |
+| Learn from deployment outcomes | Record consented results and provenance without storing full transcripts |
+| Improve across models, harnesses, and skills | Stage reusable lessons through a shared API; no provider-specific model assumptions |
+| Protect quality while improving | Compare candidate and baseline on a held-out suite; require no safety, quality, token, or latency regression plus one strict gain |
+| Control what becomes memory | Reviewer approval is required; rollback removes the active lesson while retaining its scorecard |
 
 ## Quick start
 
@@ -115,9 +120,18 @@ flowchart LR
   I --> J[Character-budgeted JSON context]
   J --> A
   F --> K[Explicit delete or expiry purge]
+  A --> L[Record consented deployment outcome]
+  L --> M[(Scoped experience ledger)]
+  M --> N[Stage reusable lesson]
+  N --> O[External evaluator: baseline vs candidate]
+  O --> P{Held-out quality, safety, cost and latency gates}
+  P -->|Fail| N
+  P -->|Pass| S[Operator approval]
+  S --> T[Promote lesson into scoped memory]
+  T --> G
 ```
 
-The library executes in your process. The HTTP layer adds key authentication and tenant assignment. Extraction is a separate proposal step; it never silently writes a model's output into memory. [Detailed architecture and trust boundaries](docs/ARCHITECTURE.md).
+The library executes in your process. The HTTP layer adds key authentication and tenant assignment. Model-generated facts and improvement lessons remain proposals until reviewed and evaluated; they are never silently committed. CortexState does not train model weights or autonomously tune a live agent: your deployment records outcomes, runs the evaluator, and approves changes. The shared memory and experience format lets different models, harnesses, and skills contribute to and retrieve the same authorized knowledge. [Detailed architecture](docs/ARCHITECTURE.md) · [continual improvement design](docs/CONTINUAL-IMPROVEMENT.md).
 
 ## Run the service
 
@@ -191,7 +205,7 @@ Run `python -m examples.support_workflow` for a synthetic customer-support examp
 ## Project map
 
 ```text
-cortexstate/       Memory engine, extraction boundary, HTTP server, client, CLI
+cortexstate/       Memory engine, deployment-learning ledger, HTTP server, client, CLI
 sdk/javascript/   JavaScript client and transport tests
 tests/            Persistence, isolation, concurrency, lifecycle, API tests
 examples/         Runnable local workflow

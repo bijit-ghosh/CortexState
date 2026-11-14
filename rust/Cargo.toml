@@ -1,6 +1,6 @@
 [package]
 name = "cortexstate-rank"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 license = "MIT"
 description = "Optional deterministic BM25 scoring core for CortexState"

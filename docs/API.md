@@ -1,6 +1,6 @@
 # API contract
 
-All memory endpoints use `POST /v1/memories/{operation}`, `Authorization: Bearer <key>`, `Content-Type: application/json`, and a single Content-Length header. Maximum body size is 65,536 bytes. Chunked request bodies are unsupported. The unauthenticated `GET /health` endpoint returns liveness only.
+Memory endpoints use `POST /v1/memories/{operation}` and outcome-learning endpoints use `POST /v1/learning/{operation}`. Both require `Authorization: Bearer <key>`, `Content-Type: application/json`, and a single Content-Length header. Maximum body size is 65,536 bytes. Chunked request bodies are unsupported. The unauthenticated `GET /health` endpoint returns liveness only.
 
 Every body includes `scope`. The API assigns `tenant` from the credential; callers send:
 
@@ -24,6 +24,26 @@ Every body includes `scope`. The API assigns `tenant` from the credential; calle
 | `history` | `identifier` | Ordered revision events; includes expired memories until purged |
 | `delete` | `identifier`, `expected_revision` | `null`; current row, history, replay data removed |
 | `purge-expired` | None | Number removed from this scope |
+
+## Deployment learning endpoints
+
+All learning endpoints also require the same exact `scope`; the server assigns the tenant from the API key. Outcomes and candidate text are returned as untrusted data and are never added to normal retrieval automatically.
+
+| Endpoint | Required fields | Result |
+| --- | --- | --- |
+| `POST /v1/learning/record` | `task`, `outcome`, `summary`, `consent: true`; optional `source`, `measures`, `event_key` | Idempotent experience record for success, failure, correction, blocked, or unsafe outcome |
+| `POST /v1/learning/list` | Optional `limit` (1–100), `before` | Recent same-scope experiences |
+| `POST /v1/learning/candidates` | Optional `limit` (1–100), `status` | Same-scope candidate lessons and their most recent evaluation |
+| `POST /v1/learning/propose` | `evidence_ids`, `content`; optional `category` | Staged candidate linked to retained same-scope evidence |
+| `POST /v1/learning/evaluate` | `identifier`, `suite`, `evaluator`, `heldout: true`, `total`, baseline/candidate pass counts, safety regressions, baseline/candidate tokens and latency | Immutable scorecard; reports whether all non-regression and strict-gain gates pass |
+| `POST /v1/learning/promote` | `identifier`, `approved_by` | Adds an evaluated lesson to ordinary memory after explicit trusted-backend approval |
+| `POST /v1/learning/reject` | `identifier`, `reason` | Marks an unpromoted candidate rejected |
+| `POST /v1/learning/rollback` | `identifier`, `expected_revision` | Revision-checked removal of a promoted lesson; scorecard remains |
+| `POST /v1/learning/delete-experience` | `identifier` | Deletes the experience and derived candidates/promoted lessons |
+
+The promotion gate requires the candidate to match or exceed baseline task success, tokens, and latency; have zero reported safety regressions; and strictly improve at least one of task success, tokens, or latency. Both versions must be scored against the same protected holdout suite. The caller supplies the evaluator label and `heldout` flag; CortexState cannot verify that the caller's evaluator is independent, that the suite was actually held out, or that scorecard values are truthful. The static tenant-key model has no fine-grained roles: every accepted key can call every operation for its tenant. Put evaluator and approval authorization in your trusted backend; `approved_by` is an audit label, not authentication.
+
+Experience `summary` is limited to 4,096 characters. `source` and `measures` are finite JSON objects limited to 4 KiB each. Record only consented, redacted summaries; do not send raw transcripts, secrets, or credentials by default. `event_key` deduplicates a repeated event and returns HTTP 409 if reused with a different payload.
 
 Successful responses use `{"result": ...}`. Errors use `{"error": ...}` with 400/401/404/409/411/413/415/500 statuses. Both clients reject remote plaintext URLs and do not follow HTTP redirects. Python exposes HTTP failures as `urllib.error.HTTPError`; JavaScript errors include `.status`.
 

@@ -8,4 +8,6 @@ Select the exact user, agent, and session. The memory list supports paging, over
 
 The model workbench enables questions and extraction when the server has a generation model configured. Buttons clearly identify API calls. Extracted facts are proposals: review their content before choosing Approve and store. An answer displays the model, number of recalled facts, and token usage returned by the provider.
 
+The deployment learning panel records concise outcomes only after an explicit operator consent check, lists recent experiences and scoped lesson candidates, and displays their held-out scorecards. The operator can reject a candidate or promote one whose recorded scorecard passed the gate. Evaluation itself runs in your trusted external evaluator; the console does not execute a benchmark or verify that a suite is truly held out. The service key authorizes tenant-wide access, so restrict dashboard access to trusted operators.
+
 Console activity shows recent actions in this tab, not a durable audit trail. Provider credentials stay on the server. The service key is held only in JavaScript memory and cleared on disconnect/reload; browser storage is not used. Serve remotely only over HTTPS behind your reviewed gateway. This is a trusted operator tool with tenant-wide access, not a public customer portal.

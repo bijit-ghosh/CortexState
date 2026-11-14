@@ -2,7 +2,7 @@
 
 ## Components and boundaries
 
-Version 0.2 added a same-origin operator dashboard over the authenticated API. Version 0.3 adds an optional batch BM25 scorer in Rust; Python remains the portable reference path and still owns storage, API, and provider integration. The dashboard polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
+Version 0.4 adds an outcome ledger and evidence-gated lesson lifecycle. The HTTP API is the interoperability boundary: models, harnesses, and skills can change while the same exact-scope memory and outcome records remain available. Python remains the reference implementation; TypeScript and other runtimes can use the HTTP API. Version 0.3 added an optional batch BM25 scorer in Rust, with a portable Python fallback. The dashboard polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
 
 ```mermaid
 flowchart TB
@@ -44,6 +44,29 @@ flowchart TB
 ```
 
 The in-process Python library bypasses HTTP authentication: possession of the database is the trust boundary. `Scope` is mandatory for all memory operations. Neither the library nor HTTP API supports wildcard tenants or users.
+
+## Deployment learning loop
+
+```mermaid
+flowchart LR
+  MODEL[Any model] --> H[Harness, tools and skills]
+  H --> APP[Authorized application]
+  APP -->|Redacted, consented outcome| LEDGER[(Scoped experience ledger)]
+  LEDGER --> PROPOSE[Candidate lesson tied to evidence]
+  PROPOSE --> EVAL[External evaluator runs baseline and candidate]
+  EVAL --> SCORE[Scorecard: success, safety, tokens, latency]
+  SCORE --> GATE{Held-out non-regression and strict gain?}
+  GATE -->|No| REVISE[Reject or revise candidate]
+  REVISE --> PROPOSE
+  GATE -->|Yes| REVIEW[Authorized operator approval]
+  REVIEW --> PROMOTE[Promote lesson to ordinary memory]
+  PROMOTE --> RETRIEVE[Exact-scope retrieval for later tasks]
+  RETRIEVE --> H
+```
+
+The ledger stores short experiences, provenance, evidence links, candidate lessons, and caller-submitted scorecards in the same SQLite database. Only a promoted lesson enters ordinary memory retrieval. The HTTP contract does not depend on the model, harness, skill format, or provider. Integrators still need to map task completion signals into the shared outcome schema and call the API; CortexState does not automatically inspect arbitrary agent traces.
+
+The evaluator runs outside CortexState. The service checks declared held-out status, scorecard ranges, zero reported safety regressions, no regression in success/tokens/latency, and at least one strict improvement. These checks are a promotion gate, not proof of evaluator independence, statistical significance, or suite integrity. Your backend must protect evaluator credentials and test data, authorize the approver, and enforce immutable acceptance criteria.
 
 ## Request sequence
 
@@ -126,7 +149,9 @@ erDiagram
   }
 ```
 
-These are logical relationships maintained by engine transactions, not SQL foreign-key constraints. `scope` is a serialized four-element identifier tuple. Metadata, vectors, snapshots, and replay responses are serialized JSON. `CONFIG` records embedding identity and dimensions. There is no separate vector database in this release.
+The learning ledger adds `learning_experiences`, `learning_candidates`, `learning_evidence`, and `learning_evaluations` tables in the same SQLite database. Experiences and candidates always carry the serialized exact scope. A candidate links to one or more same-scope experience IDs; an evaluation belongs to that candidate. Promotion creates an ordinary memory record with the candidate ID and evaluation provenance in metadata.
+
+These are logical relationships maintained by engine transactions, not all SQL foreign-key constraints. `scope` is a serialized four-element identifier tuple. Metadata, vectors, snapshots, and replay responses are serialized JSON. `CONFIG` records embedding identity and dimensions. There is no separate vector database in this release.
 
 ## Memory lifecycle
 
@@ -200,4 +225,4 @@ Expiry excludes facts from get, list, search, and context immediately. History r
 
 ## Deliberate limits
 
-No distributed transactions, automatic contradiction resolution, graph engine, managed cloud control plane, SSO, role hierarchy, or learned reranker is implemented. The stdlib HTTP adapter is intended for local/private evaluation behind a properly configured gateway if exposed remotely. The [operations guide](OPERATIONS.md) covers deployment responsibilities.
+No automatic agent execution, evaluator, background learner, model-weight update, distributed transactions, automatic contradiction resolution, graph engine, managed cloud control plane, SSO, role hierarchy, or learned reranker is implemented. The stdlib HTTP adapter is intended for local/private evaluation behind a properly configured gateway if exposed remotely. The [operations guide](OPERATIONS.md) covers deployment responsibilities.

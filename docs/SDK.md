@@ -13,7 +13,7 @@ cd sdk/javascript
 npm pack
 ```
 
-Install the generated archive in your application: `npm install /path/to/cortexstate-client-0.3.0.tgz`. Import `CortexState` from `cortexstate-client`. The ESM package includes TypeScript declarations, no runtime dependencies, and named methods for memory, statistics, proposals, and answers. Node.js 20+ is required.
+Install the generated archive in your application: `npm install /path/to/cortexstate-client-0.4.0.tgz`. Import `CortexState` from `cortexstate-client`. The ESM package includes TypeScript declarations, no runtime dependencies, and named methods for memory, deployment outcomes, lesson candidates, evaluations, and approvals. Node.js 20+ is required.
 
 ## Package artifacts and public registries
 

@@ -9,6 +9,7 @@
 | [Example catalog](../examples/README.md) | Which workflows can I run immediately without credentials? |
 | [Use cases](USE-CASES.md) | How should I apply CortexState to an actual application? |
 | [Integration patterns](INTEGRATION-PATTERNS.md) | Where does memory fit in a model or agent request? |
+| [Continual improvement](CONTINUAL-IMPROVEMENT.md) | How do deployment outcomes become reviewed, evaluated lessons across model and agent stacks? |
 
 ## Configure and operate
 

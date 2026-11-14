@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cortexstate"
-version = "0.3.0"
-description = "Inspectable, scoped memory for AI applications"
+version = "0.4.0"
+description = "Inspectable, scoped memory and evidence-gated improvement for AI applications"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}

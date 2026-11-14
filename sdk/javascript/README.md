@@ -2,7 +2,7 @@
 
 An ESM client for Node.js 20+, with TypeScript declarations and no runtime dependencies. It connects to a running CortexState service. Keep service keys in a trusted backend.
 
-Build an installable archive from this directory with `npm pack`, then install the generated `.tgz` into your application using `npm install /path/to/cortexstate-client-0.3.0.tgz`. Registry publication and package-name availability are separate; this repository does not claim the package is already on npm.
+Build an installable archive from this directory with `npm pack`, then install the generated `.tgz` into your application using `npm install /path/to/cortexstate-client-0.4.0.tgz`. Registry publication and package-name availability are separate; this repository does not claim the package is already on npm.
 
 ```javascript
 import {CortexState} from 'cortexstate-client';
@@ -15,3 +15,5 @@ await memory.update(record.id, 'Alice prefers coffee', {scope, expected_revision
 ```
 
 Also available: `get`, `list`, `history`, `delete`, `context`, `stats`, `purgeExpired`, and the lower-level `call`. Errors from HTTP responses expose `.status`. Remote connections require HTTPS, redirects are rejected, and request timeouts default to 15 seconds. The package does not run a memory server or embedding model.
+
+For model- and harness-neutral deployment learning, use `recordExperience`, `listExperiences`, `proposeLesson`, `evaluateLesson`, `listLearningCandidates`, `promoteLesson`, `rejectLesson`, `rollbackLesson`, and `deleteExperience`. Evaluation runs in your own trusted evaluator; CortexState stores the scorecard and applies its promotion gate.

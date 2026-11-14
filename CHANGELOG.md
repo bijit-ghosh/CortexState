@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 — cross-stack continual improvement
+
+- Added a provider-, harness-, and skill-neutral deployment outcome ledger with exact-scope evidence and idempotent event capture.
+- Added evidence-linked lesson candidates, held-out scorecards, a non-regression/strict-gain promotion gate, reviewer approval, rollback, rejection, and source-experience deletion.
+- Added matching authenticated HTTP operations and Python/TypeScript SDK methods, including candidate listing.
+- Added a live dashboard panel for recording consented outcomes and reviewing staged candidates and scorecards.
+- Added the continual-improvement guide and deployment-learning architecture flow; clarified that evaluation and model-weight training run outside CortexState.
+- Aligned Python, JavaScript, Rust, CI, and release artifact versions at 0.4.0. No performance or benchmark results are claimed.
+
 ## 0.3.0 — bounded service and optional Rust ranking core
 
 - Release assets: Python wheel and source archive, JavaScript tarball, optional Rust wheels for Linux/Windows/macOS and Python 3.10/3.12, and GitHub source archives.

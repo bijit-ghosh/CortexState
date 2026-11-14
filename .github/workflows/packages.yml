@@ -78,12 +78,17 @@ jobs:
             exit 1
           fi
           shopt -s nullglob
-          assets=(dist/cortexstate-${version}.whl dist/cortexstate-${version}.tar.gz dist/cortexstate-client-${version}.tgz dist/cortexstate_rank-${version}-*.whl)
+          assets=(dist/cortexstate-${version}-*.whl dist/cortexstate-${version}.tar.gz dist/cortexstate-client-${version}.tgz dist/cortexstate_rank-${version}-*.whl)
+          notes="docs/releases/v${version}.md"
+          if [[ ! -f "${notes}" ]]; then
+            echo "Missing release notes: ${notes}" >&2
+            exit 1
+          fi
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" "${assets[@]}" --clobber
             gh release edit "${GITHUB_REF_NAME}" --latest
           else
-            gh release create "${GITHUB_REF_NAME}" "${assets[@]}" --title "CortexState ${GITHUB_REF_NAME}" --notes-file docs/releases/v0.3.0.md --latest
+            gh release create "${GITHUB_REF_NAME}" "${assets[@]}" --title "CortexState ${GITHUB_REF_NAME}" --notes-file "${notes}" --latest
           fi
       - uses: actions/upload-artifact@v4
         with:

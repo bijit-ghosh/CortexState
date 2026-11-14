@@ -1,7 +1,7 @@
 {
   "name": "cortexstate-client",
-  "version": "0.3.0",
-  "description": "JavaScript and TypeScript client for CortexState memory services",
+  "version": "0.4.0",
+  "description": "JavaScript and TypeScript client for CortexState memory and learning services",
   "license": "MIT",
   "author": "Bijit Ghosh",
   "type": "module",

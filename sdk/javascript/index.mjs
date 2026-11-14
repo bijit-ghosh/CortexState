@@ -1,4 +1,11 @@
 /** CortexState client. Server-side use only; API keys authorize a whole tenant. */
+const learningPaths = {
+  'learning-record': 'record', 'learning-list': 'list', 'learning-candidates': 'candidates',
+  'learning-propose': 'propose', 'learning-evaluate': 'evaluate',
+  'learning-promote': 'promote', 'learning-reject': 'reject', 'learning-rollback': 'rollback',
+  'learning-delete-experience': 'delete-experience',
+};
+
 export class CortexState {
   constructor({url = 'http://127.0.0.1:8787', apiKey, timeoutMs = 15000}) {
     const parsed = new URL(url);
@@ -14,10 +21,13 @@ export class CortexState {
     this.timeoutMs = timeoutMs;
   }
   async call(operation, {scope, ...payload}) {
-    if (!['add', 'get', 'list', 'search', 'update', 'delete', 'history', 'context', 'stats', 'propose', 'answer', 'purge-expired'].includes(operation)) {
+    if (!['add', 'get', 'list', 'search', 'update', 'delete', 'history', 'context', 'stats', 'propose', 'answer', 'purge-expired', ...Object.keys(learningPaths)].includes(operation)) {
       throw new Error('Unknown operation');
     }
-    const response = await fetch(`${this.url}/v1/memories/${operation}`, {
+    const path = learningPaths[operation]
+      ? `/v1/learning/${learningPaths[operation]}`
+      : `/v1/memories/${operation}`;
+    const response = await fetch(`${this.url}${path}`, {
       method: 'POST', headers: {'Authorization': `Bearer ${this.apiKey}`, 'Content-Type': 'application/json'},
       body: JSON.stringify({...payload, scope}), signal: AbortSignal.timeout(this.timeoutMs),
       redirect: 'error',
@@ -42,4 +52,13 @@ export class CortexState {
   purgeExpired(options) { return this.call('purge-expired', options); }
   propose(messages, options) { return this.call('propose', {...options, messages}); }
   answer(question, options) { return this.call('answer', {...options, question}); }
+  recordExperience(experience, {scope}) { return this.call('learning-record', {...experience, scope}); }
+  listExperiences({scope, ...options}) { return this.call('learning-list', {...options, scope}); }
+  listLearningCandidates({scope, ...options}) { return this.call('learning-candidates', {...options, scope}); }
+  proposeLesson(candidate, {scope}) { return this.call('learning-propose', {...candidate, scope}); }
+  evaluateLesson(id, scorecard, {scope}) { return this.call('learning-evaluate', {...scorecard, identifier: id, scope}); }
+  promoteLesson(id, {scope, approvedBy}) { return this.call('learning-promote', {identifier: id, approved_by: approvedBy, scope}); }
+  rejectLesson(id, {scope, reason}) { return this.call('learning-reject', {identifier: id, reason, scope}); }
+  rollbackLesson(id, {scope, expectedRevision}) { return this.call('learning-rollback', {identifier: id, expected_revision: expectedRevision, scope}); }
+  deleteExperience(id, {scope}) { return this.call('learning-delete-experience', {identifier: id, scope}); }
 }

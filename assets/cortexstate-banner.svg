@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
-  <title id="title">CortexState — scoped, inspectable memory for AI applications</title>
-  <desc id="desc">Architecture flow: an application sends facts and queries through Python or TypeScript clients to the CortexState policy core and SQLite. Scoped retrieval ranks live facts, packs a character-bounded context marked as untrusted data, and returns it to the application. An operator dashboard and optional reviewed model proposals sit behind the same controls. BM25 can use an optional Rust scorer or the Python reference.</desc>
+  <title id="title">CortexState — shared memory and evidence-gated learning across agent stacks</title>
+  <desc id="desc">Model-, harness-, and skill-neutral architecture: applications use Python, TypeScript, or HTTP to record outcomes, stage lessons, evaluate them externally against a protected baseline, and promote approved improvements to scoped memory. CortexState also provides inspectable retrieval, an operator dashboard, and optional Rust BM25 scoring.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0c1727"/><stop offset=".58" stop-color="#14243a"/><stop offset="1" stop-color="#1a3048"/></linearGradient>
     <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#64e1c2"/><stop offset="1" stop-color="#8db2ff"/></linearGradient>
@@ -16,13 +16,13 @@
 
   <g font-family="Segoe UI, Inter, Arial, sans-serif">
     <text x="58" y="68" fill="#f2f7fb" font-size="38" font-weight="750" letter-spacing="-.6">CortexState</text>
-    <text x="60" y="103" fill="#bdcad8" font-size="19">Application-controlled memory: save deliberate facts, retrieve only what fits, inspect every change.</text>
+    <text x="60" y="103" fill="#bdcad8" font-size="19">Shared memory and evidence-gated improvement across models, harnesses, and skills.</text>
     <rect x="1285" y="43" width="255" height="38" rx="19" fill="#20364c" stroke="#38536d"/>
     <circle cx="1308" cy="62" r="5" fill="#65dfc1"/>
     <text x="1322" y="68" fill="#c9d8e5" font-size="13" font-weight="700" letter-spacing="1">LOCAL-FIRST · PROVIDER-NEUTRAL</text>
 
-    <text x="60" y="151" fill="#78e1c6" font-size="13" font-weight="750" letter-spacing="1.7">ONE CONTROLLED MEMORY PATH</text>
-    <text x="1540" y="151" fill="#91a7ba" font-size="13" text-anchor="end">WRITE CONFIRMED FACTS  →  RECALL SCOPED CONTEXT</text>
+    <text x="60" y="151" fill="#78e1c6" font-size="13" font-weight="750" letter-spacing="1.7">ONE SHARED MEMORY AND LEARNING PATH</text>
+    <text x="1540" y="151" fill="#91a7ba" font-size="13" text-anchor="end">DEPLOY  →  MEASURE  →  EVALUATE  →  APPROVE  →  RECALL</text>
 
     <!-- Main architecture path -->
     <g filter="url(#shadow)">
@@ -98,11 +98,11 @@
       <text x="76" y="545" fill="#c1d0dd" font-size="14">review history and purge expired data. Trusted operators</text>
       <text x="76" y="567" fill="#c1d0dd" font-size="14">only; keep the service behind your access-controlled gateway.</text>
 
-      <text x="593" y="460" fill="#8ce2ce" font-size="12" font-weight="750" letter-spacing="1.5">OPTIONAL MODEL CALLS</text>
-      <text x="593" y="493" fill="#f2f7fb" font-size="20" font-weight="700">Bring your provider</text>
-      <text x="593" y="523" fill="#c1d0dd" font-size="14">Use configured embeddings or propose facts from a</text>
-      <text x="593" y="545" fill="#c1d0dd" font-size="14">conversation. Review proposals before adding them.</text>
-      <text x="593" y="567" fill="#c1d0dd" font-size="14">Provider credentials stay server-side.</text>
+      <text x="593" y="460" fill="#8ce2ce" font-size="12" font-weight="750" letter-spacing="1.5">LEARN FROM DEPLOYMENT</text>
+      <text x="593" y="493" fill="#f2f7fb" font-size="20" font-weight="700">Improve with evidence</text>
+      <text x="593" y="523" fill="#c1d0dd" font-size="14">Record outcomes, stage a reusable lesson, compare it</text>
+      <text x="593" y="545" fill="#c1d0dd" font-size="14">to a frozen baseline, then review before promotion.</text>
+      <text x="593" y="567" fill="#c1d0dd" font-size="14">Your evaluator runs the comparison.</text>
 
       <text x="1110" y="460" fill="#a8bdff" font-size="12" font-weight="750" letter-spacing="1.5">PERFORMANCE, WITH A FALLBACK</text>
       <text x="1110" y="493" fill="#f2f7fb" font-size="20" font-weight="700">Rust where it fits</text>
@@ -113,6 +113,6 @@
 
     <path d="M60 624H1540" stroke="#3b5369" stroke-width="1"/>
     <text x="60" y="660" fill="#b3c4d3" font-size="14">Exact scope · revision-checked writes · explicit retention · bounded context · inspectable retrieval</text>
-    <text x="1540" y="660" fill="#72dfc4" font-size="13" font-weight="750" text-anchor="end" letter-spacing="1">BUILT BY BIJIT GHOSH · CORTEXSTATE 0.3</text>
+    <text x="1540" y="660" fill="#72dfc4" font-size="13" font-weight="750" text-anchor="end" letter-spacing="1">BUILT BY BIJIT GHOSH · CORTEXSTATE 0.4</text>
   </g>
 </svg>

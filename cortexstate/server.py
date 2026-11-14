@@ -8,6 +8,7 @@ import threading
 from urllib.parse import urlsplit
 
 from .memory import Conflict, NotFound, Scope, string
+from .learning import LearningLedger
 
 log = logging.getLogger("cortexstate")
 
@@ -26,6 +27,7 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
             raise ValueError("API keys must be ASCII and at least 32 characters")
         string(tenant, "tenant")
     credentials = dict(credentials)
+    learning = LearningLedger(memory)
 
     class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         # Bounded concurrency prevents untrusted connection floods exhausting threads.
@@ -54,7 +56,7 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                 self._slots.release()
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "CortexState/0.3"
+        server_version = "CortexState/0.4"
         sys_version = ""
 
         def setup(self):
@@ -137,6 +139,17 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                           "/v1/memories/history": memory.history, "/v1/memories/context": memory.context,
                           "/v1/memories/stats": memory.stats,
                           "/v1/memories/purge-expired": memory.purge_expired}
+                routes.update({
+                    "/v1/learning/record": learning.record,
+                    "/v1/learning/list": learning.list,
+                    "/v1/learning/candidates": learning.list_candidates,
+                    "/v1/learning/propose": learning.propose,
+                    "/v1/learning/evaluate": learning.evaluate,
+                    "/v1/learning/promote": learning.promote,
+                    "/v1/learning/reject": learning.reject,
+                    "/v1/learning/rollback": learning.rollback,
+                    "/v1/learning/delete-experience": learning.delete_experience,
+                })
                 if path.path in ('/v1/memories/propose', '/v1/memories/answer'):
                     if model is None or not model.generation_model:
                         return self.reply(503, {'error': 'generation model is not configured'})
