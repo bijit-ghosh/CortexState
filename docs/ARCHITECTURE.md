@@ -2,6 +2,8 @@
 
 ## Components and boundaries
 
+Version 0.2 adds a same-origin operator dashboard over the authenticated API. It polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
+
 ```mermaid
 flowchart TB
   subgraph Caller[Trusted application boundary]
@@ -172,7 +174,7 @@ Embeddings run inside an add transaction to preserve the replay guarantee; slow 
 
 ## Retrieval
 
-The default lexical signal is the fraction of unique query words present in a fact. Word splitting is Unicode-aware and case-insensitive, without stemming, BM25, or language-specific NLP. With an embedder, normalized cosine similarity is clamped at zero and combined as:
+The default lexical signal is the fraction of unique query words present in a fact. Word splitting is Unicode-aware and case-insensitive, without stemming or language-specific NLP. Search can select `ranking="bm25"`: k1=1.2, b=0.75, with document frequencies calculated over live, scoped, metadata-filtered records. The raw BM25 score is normalized as `raw / (1 + raw)` before blending. This adds ranking, not an index. With an embedder, normalized cosine similarity is clamped at zero and combined as:
 
 `score = (1 - semantic_weight) * lexical + semantic_weight * semantic`
 

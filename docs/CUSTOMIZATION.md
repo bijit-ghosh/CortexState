@@ -1,5 +1,7 @@
 # Customization
 
+For the bundled OpenAI embedding, extraction, and answer adapter, start with [model configuration](MODELS.md). The callable patterns below remain available for other providers and custom policies.
+
 ## Scope and metadata
 
 Use tenant for an organization or application boundary, user for the subject, agent for the application role, and session for a specific conversation or `persistent`. Scope values are identifiers, not authorization policies. The calling application must verify the user may access the supplied user/agent/session.

@@ -6,7 +6,7 @@
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve relevant context, and track changes without tying your application to one model provider. Run the Python library in your application or expose it through an authenticated HTTP service.
 
-**Status: 0.1.0 developer preview.** The core works without API keys, model calls, or runtime dependencies. This is a working foundation, not feature parity with an established managed memory platform. See [capabilities and roadmap](docs/CAPABILITIES.md) before choosing it for production.
+**Version 0.2.0 — developer preview.** CortexState combines a memory API, a live operator dashboard, Python/TypeScript SDKs, and opt-in model-backed embeddings, extraction, and answers. Start with the local demo, then connect your provider credentials for model calls. See [capabilities](docs/CAPABILITIES.md) for the implemented scope and deployment limits.
 
 [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Customization](docs/CUSTOMIZATION.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
@@ -16,7 +16,7 @@ CortexState keeps useful facts separate from a conversation transcript. Your app
 
 | You want to… | Start here |
 | --- | --- |
-| Try memory locally in a few minutes | [Step-by-step getting started](docs/GETTING-STARTED.md) |
+| Start local memory with one command | [Quick launch and setup](docs/GETTING-STARTED.md) |
 | Understand the write, retrieval, and deletion paths | [Architecture and diagrams](docs/ARCHITECTURE.md) |
 | Add memory to an existing agent or application | [Integration patterns](docs/INTEGRATION-PATTERNS.md) |
 | Build a support assistant, coding helper, or workflow agent | [Practical use cases](docs/USE-CASES.md) |
@@ -50,6 +50,14 @@ All three use the same memory engine. There is no CortexState hosted account or 
 | Connect another runtime | Python HTTP client and JavaScript client for trusted backend services |
 
 ## Quick start
+
+Already installed? Start the dashboard with a disposable sample workspace:
+
+```bash
+cortexstate demo
+```
+
+Open the printed dashboard URL and paste the generated disposable service key. The console shows live counts, scoped memories, revision history, search scores, and model tools when a generation provider is configured. [Dashboard guide](docs/DASHBOARD.md) · [API and model setup](docs/MODELS.md) · [SDK packages](docs/SDK.md).
 
 Python 3.10 or later. Install from this repository; no PyPI or npm release is claimed.
 
@@ -152,7 +160,7 @@ console.log(facts);
 
 ## Customize it
 
-Choose your scope layout, metadata, TTL, retrieval weights, embedding provider, and extraction workflow. The default server runs lexical retrieval; embedder injection is available through the Python API and a custom server entry point. [Customization guide](docs/CUSTOMIZATION.md) includes working patterns and explicit boundaries.
+Choose your scope layout, metadata, TTL, retrieval weights, embedding provider, and extraction workflow. Search supports word overlap or BM25, optionally blended with embedding similarity. Configure model environment variables to enable the bundled OpenAI adapter, or supply your own provider callable. [Customization guide](docs/CUSTOMIZATION.md) and [model setup](docs/MODELS.md) describe both paths.
 
 ## Verify it
 
@@ -191,6 +199,4 @@ docs/             Architecture, API contract, customization, operations, roadmap
 
 ## Ownership and reference
 
-CortexState is maintained by Bijit Ghosh and licensed under [MIT](LICENSE). [Mem0](https://github.com/mem0ai/mem0) was consulted as a public product-capability reference. This implementation does not copy its source, documentation, artwork, benchmark results, or branding. CortexState is not affiliated with Mem0. See [provenance](PROVENANCE.md).
-
-Contributions should include a concrete use case and evidence. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [security policy](SECURITY.md).
+CortexState is created and maintained by **Bijit Ghosh**, with original project code available under the [MIT license](LICENSE).

@@ -12,6 +12,10 @@
 
 ## Configure and operate
 
+- [Live dashboard](DASHBOARD.md)
+- [SDK installation and packaging](SDK.md)
+- [API-backed models](MODELS.md)
+
 | Guide | What it answers |
 | --- | --- |
 | [API contract](API.md) | What fields, limits, operations, and errors are supported? |

@@ -2,26 +2,28 @@
 
 Mem0's public repository was reviewed as a product reference. This table describes CortexState itself; it is not a benchmark or an assertion that the projects are interchangeable.
 
-| Capability | CortexState 0.1.0 |
+| Capability | CortexState 0.2.0 |
 | --- | --- |
 | Persistent scoped memory | Implemented: SQLite and exact tenant/user/agent/session scope |
 | Python integration | Implemented: local library and HTTP client |
-| JavaScript integration | Implemented: source-distributed HTTP client |
+| JavaScript integration | Implemented: packable ESM SDK with TypeScript declarations; registry publication pending |
 | CLI and self-host HTTP | Implemented: local/private developer service |
 | Memory revision history | Implemented with compare-and-update revisions |
 | Retry deduplication | Implemented with scoped idempotency receipts |
 | Expiry and forgetting | Implemented; purge must be invoked explicitly |
 | Search explanations | Implemented: lexical and optional cosine contributions |
 | Semantic retrieval | Extension implemented; requires your embedding callable |
-| Conversation extraction | Validated proposal interface implemented; model integration is caller-owned |
+| Conversation extraction | Validated review proposals, optional OpenAI adapter, and model-backed answer endpoint; external calls require credentials |
 | Metadata filtering | Implemented: top-level equality |
 | Context budgeting | Implemented: exact characters; model token budgeting not included |
 | Authentication | Implemented: static tenant-scoped backend keys |
 | Reproducible eval | Implemented: small public synthetic regression fixture |
-| Dashboard / browser extension | Not implemented |
+| Dashboard | Implemented: live polling, scopes, statistics, CRUD, history, search, model questions, reviewed proposals |
+| Browser extension | Not implemented |
 | Managed cloud / signup / billing | Not implemented |
 | Graph memory / entity linking | Not implemented |
-| BM25 / vector indexes / reranking | Not implemented |
+| BM25 | Implemented as opt-in scoring over scoped records |
+| Vector indexes / reranking | Not implemented |
 | Automatic fact conflict resolution | Not implemented |
 | MCP / framework-specific adapters | Not implemented |
 | Distributed storage / HA / online migrations | Not implemented |

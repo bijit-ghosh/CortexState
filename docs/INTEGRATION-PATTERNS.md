@@ -16,7 +16,7 @@ flowchart TD
   Review -->|No| Discard[Do not persist]
 ```
 
-The model invocation is deliberately outside CortexState. You can use any provider or local model your application supports. No specific framework, model SDK, or MCP adapter is bundled.
+Your application can own its model invocation or use CortexState's optional OpenAI-backed proposal and answer endpoints. Other providers and local models remain possible through application callables. No framework-specific or MCP adapter is bundled. See [model configuration](MODELS.md).
 
 ## Prepare context without calling a model
 

@@ -3,6 +3,7 @@ import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from .memory import Conflict, NotFound, Scope, string
@@ -10,11 +11,11 @@ from .memory import Conflict, NotFound, Scope, string
 log = logging.getLogger("cortexstate")
 
 
-def make_server(memory, credentials, host="127.0.0.1", port=8787):
+def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None):
     """credentials maps secret -> tenant. Provision secrets outside this process.
 
     Keys confer access to every user in their tenant: this API is for trusted
-    backend services, not browsers or untrusted end-user clients.
+    backend services and the trusted operator console, not end-user clients.
     """
     if not isinstance(credentials, dict) or not credentials:
         raise ValueError("at least one API key is required")
@@ -26,7 +27,7 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787):
     credentials = dict(credentials)
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "CortexState/0.1"
+        server_version = "CortexState/0.2"
         sys_version = ""
 
         def setup(self):
@@ -48,7 +49,22 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787):
             self.wfile.write(body)
 
         def do_GET(self):
-            if self.path == "/health":
+            assets = {"/": ("index.html", "text/html; charset=utf-8"),
+                      "/dashboard": ("index.html", "text/html; charset=utf-8"),
+                      "/dashboard/app.js": ("app.js", "text/javascript; charset=utf-8"),
+                      "/dashboard/style.css": ("style.css", "text/css; charset=utf-8")}
+            if self.path in assets:
+                filename, mime = assets[self.path]
+                body = (Path(__file__).parent / "dashboard" / filename).read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
+                self.end_headers()
+                self.wfile.write(body)
+            elif self.path == "/health":
                 self.reply(200, {"service": "cortexstate", "status": "alive"})
             else:
                 self.reply(404, {"error": "not_found"})
@@ -90,10 +106,27 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787):
                           "/v1/memories/list": memory.list, "/v1/memories/search": memory.search,
                           "/v1/memories/update": memory.update, "/v1/memories/delete": memory.delete,
                           "/v1/memories/history": memory.history, "/v1/memories/context": memory.context,
+                          "/v1/memories/stats": memory.stats,
                           "/v1/memories/purge-expired": memory.purge_expired}
+                if path.path in ('/v1/memories/propose', '/v1/memories/answer'):
+                    if model is None or not model.generation_model:
+                        return self.reply(503, {'error': 'generation model is not configured'})
+                    if path.path.endswith('/propose'):
+                        from .extraction import propose
+                        if set(payload) != {'messages'}:
+                            raise ValueError('propose requires messages only')
+                        result = propose(payload['messages'], extractor=model.extract)
+                    else:
+                        if set(payload) != {'question'}:
+                            raise ValueError('answer requires question only')
+                        context = memory.context(payload['question'], scope=scope, max_chars=4000)
+                        result = model.answer(payload['question'], context)
+                    return self.reply(200, {'result': result})
                 if path.path not in routes:
                     return self.reply(404, {"error": "not_found"})
                 result = routes[path.path](scope=scope, **payload)
+                if path.path.endswith('/stats'):
+                    result['generation_available'] = bool(model and model.generation_model)
                 self.reply(200, {"result": result})
             except Conflict as exc:
                 self.reply(409, {"error": str(exc)})

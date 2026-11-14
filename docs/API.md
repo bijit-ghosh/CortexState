@@ -16,6 +16,9 @@ Every body includes `scope`. The API assigns `tenant` from the credential; calle
 | `get` | `identifier` | Current live record |
 | `list` | Optional `limit` (1–1000), `offset` | Live records ordered by created time and ID |
 | `search` | `query`; optional `limit` (1–100), `metadata`, `semantic_weight` (0–1) | Ranked records with `score` and `signals` |
+| `stats` | None | Scoped live/expired counts, revision count, embedding identity, generation availability |
+| `propose` | `messages` (user/assistant role/content objects) | Unpersisted review proposals; calls configured generation model |
+| `answer` | `question` | Model answer, retrieved memory IDs and reported token usage |
 | `context` | `query`; optional `max_chars` (2–1,000,000), `limit` (1–100), `metadata` | JSON string, exact character count, memory IDs, trust marker |
 | `update` | `identifier`, `text`, `expected_revision`; optional `metadata` | Updated record |
 | `history` | `identifier` | Ordered revision events; includes expired memories until purged |
@@ -23,6 +26,8 @@ Every body includes `scope`. The API assigns `tenant` from the credential; calle
 | `purge-expired` | None | Number removed from this scope |
 
 Successful responses use `{"result": ...}`. Errors use `{"error": ...}` with 400/401/404/409/411/413/415/500 statuses. Both clients reject remote plaintext URLs and do not follow HTTP redirects. Python exposes HTTP failures as `urllib.error.HTTPError`; JavaScript errors include `.status`.
+
+Search also accepts `ranking="overlap"` (default) or `ranking="bm25"`. `context` retains the default overlap ranking. Generation endpoints return HTTP 503 when no generation model is configured. Propose never stores its output; review it and call add explicitly. Provider calls may incur costs. The static console assets are public; every data operation remains authenticated.
 
 Memory records contain `id`, `text`, `metadata`, `revision`, `created_at`, `updated_at`, and `expires_at`. Timestamps are UTC Unix seconds; absent expiry is `null`. TTL is an integer from 1 to 315,360,000 seconds. Updating preserves the existing expiry; TTL extension is not implemented. Omitted update metadata preserves the previous object; `{}` clears it.
 

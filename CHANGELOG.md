@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 — memory console and SDK packages
+
+- Live operator dashboard with exact scopes, counts, memory editing, history, and retention actions.
+- One-command disposable demo, BM25 ranking, and scoped statistics.
+- Python named client methods and an installable JavaScript SDK with TypeScript declarations.
+- Optional OpenAI embeddings, extraction proposals, and context-backed answers with server-side credentials.
+- SDK package artifact workflow and expanded regression checks. Public registry publication remains pending account setup.
+
 ## Documentation and adoption update
 
 - Expanded CortexState architecture with request sequence, storage, lifecycle, and deployment diagrams.

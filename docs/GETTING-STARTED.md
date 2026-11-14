@@ -1,5 +1,11 @@
 # Getting started with CortexState
 
+## One-command dashboard
+
+After installation, run `cortexstate demo` (or `python -m cortexstate demo`). It starts a loopback service with three synthetic memories and prints a disposable key. Open the displayed `/dashboard` URL and paste that key to connect. No database configuration is needed for this demo; it uses temporary storage. Ctrl+C stops it and removes the temporary database.
+
+For persistent data, use `serve` with a database path and tenant keys as described below. To enable actual provider calls, follow [model setup](MODELS.md).
+
 ## 1. Install from source
 
 Use Python 3.10 or later. Node.js 20 or later is needed only for the JavaScript client. The Python core has no runtime dependencies and requires no model credentials.

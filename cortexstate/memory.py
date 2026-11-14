@@ -249,24 +249,47 @@ class Memory:
                 self._erase(db, row["id"], scope.key())
             return len(rows)
 
-    def search(self, query, *, scope, limit=10, metadata=None, semantic_weight=0.5):
+    def stats(self, *, scope):
+        with self._db() as db:
+            rows = db.execute("SELECT COUNT(*) AS total, SUM(CASE WHEN expires IS NULL OR expires>? THEN 1 ELSE 0 END) AS live, MAX(updated) AS latest FROM memories WHERE scope=?",
+                              (self.clock(), scope.key())).fetchone()
+            revisions = db.execute("SELECT COUNT(*) FROM events WHERE scope=?", (scope.key(),)).fetchone()[0]
+        return {"total": rows["total"], "live": rows["live"] or 0,
+                "expired": rows["total"]-(rows["live"] or 0), "revision_events": revisions,
+                "last_updated_at": rows["latest"], "embedding_id": self.embedding_id}
+
+    def search(self, query, *, scope, limit=10, metadata=None, semantic_weight=0.5, ranking="overlap"):
         string(query, "query", 8192)
         integer(limit, "limit", 1, 100)
         if type(semantic_weight) not in (int, float) or not 0 <= semantic_weight <= 1:
             raise ValueError("semantic_weight must be between 0 and 1")
         filters = json.loads(self._metadata(metadata))
+        if ranking not in ("overlap", "bm25"):
+            raise ValueError("ranking must be overlap or bm25")
         query_tokens = set(tokens(query))
         vector = self._vector(query)
         with self._db() as db:
             rows = db.execute("SELECT * FROM memories WHERE scope=? AND (expires IS NULL OR expires>?)",
                               (scope.key(), self.clock())).fetchall()
+        rows = [row for row in rows if all(k in json.loads(row["metadata"]) and json.loads(row["metadata"])[k] == v for k, v in filters.items())]
+        documents = [tokens(row["text"]) for row in rows]
+        avg_length = sum(map(len, documents)) / max(1, len(documents))
+        frequencies = {word: sum(word in doc for doc in documents) for word in query_tokens}
         scored = []
-        for row in rows:
+        for row, document in zip(rows, documents):
             record = self._record(row)
             if any(k not in record["metadata"] or record["metadata"][k] != v for k, v in filters.items()):
                 continue
             words = set(tokens(row["text"]))
             lexical = len(query_tokens & words) / max(1, len(query_tokens))
+            if ranking == "bm25":
+                raw = 0.0
+                for word in query_tokens:
+                    frequency = document.count(word)
+                    inverse = math.log(1 + (len(rows)-frequencies[word]+0.5)/(frequencies[word]+0.5))
+                    denominator = frequency + 1.2*(0.25+0.75*len(document)/max(1,avg_length))
+                    raw += inverse * frequency * 2.2 / denominator
+                lexical = raw / (1 + raw)
             semantic = 0.0
             if vector is not None:
                 stored = json.loads(row["vector"])

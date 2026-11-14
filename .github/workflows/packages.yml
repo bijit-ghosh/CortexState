@@ -1,0 +1,26 @@
+name: Build SDK packages
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install build
+      - run: python -m build
+      - run: npm pack --pack-destination ../../dist
+        working-directory: sdk/javascript
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cortexstate-sdk-packages
+          path: dist/*

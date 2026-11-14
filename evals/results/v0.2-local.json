@@ -1,0 +1,84 @@
+{
+  "status": "measured",
+  "evaluated_at_utc": "2026-11-13T22:47:29.438669+00:00",
+  "python": "3.12.14",
+  "platform": "Windows",
+  "dataset": "public synthetic development fixture",
+  "memory_count": 8,
+  "cases": [
+    {
+      "query": "coffee lunch",
+      "expected": "drink",
+      "actual": "drink",
+      "passed": true
+    },
+    {
+      "query": "vim editor",
+      "expected": "editor",
+      "actual": "editor",
+      "passed": true
+    },
+    {
+      "query": "vegetarian meals",
+      "expected": "diet",
+      "actual": "diet",
+      "passed": true
+    },
+    {
+      "query": "Berlin December",
+      "expected": "travel",
+      "actual": "travel",
+      "passed": true
+    },
+    {
+      "query": "Python services",
+      "expected": "language",
+      "actual": "language",
+      "passed": true
+    },
+    {
+      "query": "dark mode",
+      "expected": "theme",
+      "actual": "theme",
+      "passed": true
+    },
+    {
+      "query": "meetings Tuesday",
+      "expected": "meeting",
+      "actual": "meeting",
+      "passed": true
+    },
+    {
+      "query": "cat Luna",
+      "expected": "pet",
+      "actual": "pet",
+      "passed": true
+    },
+    {
+      "query": "astronaut telescope",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "tenant_isolation_passed": true,
+  "retrieval_p50_ms": 1.1300000005576294,
+  "retrieval_max_ms": 2.1985000021231826,
+  "model_calls": 0,
+  "model_tokens": 0,
+  "limitations": "Single run, tiny lexical fixture, no held-out data or model comparison; timing is machine-specific.",
+  "sha256": {
+    "cortexstate/__init__.py": "193c3a8a442172fe9125e70b2c8ebaa38c4f312d0ab22cad09822904ed22609f",
+    "cortexstate/__main__.py": "cf7390a2508a0fcad4777a4a629fc5212ab655cb45845975995f835676a834e3",
+    "cortexstate/cli.py": "2b7e8dd9f05eb113ee7eb60f36f6890504e3f00bcfe407e33d459dde6fe5d7da",
+    "cortexstate/client.py": "a344b67bac3dc785b3d60c5762735004dbfcca7115f5e804c203f9d313464cbc",
+    "cortexstate/extraction.py": "a59cb83245dbeef8ac7da1ae8282ebd7481733a34aa7f80ec7d84a00f221c968",
+    "cortexstate/memory.py": "de9956e74f6599490b7b516484cbfb88f679722247165cc41fdd54e2dddde87f",
+    "cortexstate/providers.py": "21c0bb9067bc6a3f5a0c5411f5645e7fc16fde4342ed7680e311e33e57849b6a",
+    "cortexstate/server.py": "32dc505709d8f660bce1106963c23c1b13c52fd5aca9570e30a6d4c3ffd0679a",
+    "evals/cases.json": "937beab3e4d5ad7c1b40a8c8a4f4ad640002108c9287cd33b80f4b859da054cb",
+    "evals/run.py": "a4c760ddf681559f1fc516a42a2c302a75fed3afce26c9356084047f1fe011ba"
+  }
+}

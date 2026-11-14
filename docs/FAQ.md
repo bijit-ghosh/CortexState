@@ -2,7 +2,7 @@
 
 ### Does it need an LLM API key?
 
-No. The default library stores explicit facts and searches by word overlap. A key is needed only by a provider you choose to integrate. The HTTP service has its own tenant API keys, unrelated to model-provider keys.
+The local demo needs no model credentials. API-backed embedding, extraction, and answer features use a provider key configured on the server. The HTTP service also has separate tenant service keys. See [model setup](MODELS.md).
 
 ### Does it learn automatically from every conversation?
 
@@ -38,11 +38,11 @@ No. CortexState defines its own scope model, operations, and retry semantics. Ex
 
 ### Can I use a browser directly with the service?
 
-Tenant keys grant access across users in their tenant, so keep them in a trusted backend. Have the browser call that backend, which authenticates users and controls scope selection. A browser console and end-user authorization layer are not included.
+The bundled operator console uses a tenant key held in tab memory. Use it only as a trusted operator. For an end-user product, keep tenant keys in your backend and enforce user permissions there; the console is not an end-user authorization layer.
 
 ### Where are the dashboard, cloud signup, and framework plugins?
 
-They are not implemented in this developer preview. See [capabilities and roadmap](CAPABILITIES.md) for an explicit feature inventory. Documentation does not imply a feature exists.
+The operator dashboard is available at `/dashboard` on your running service. Cloud signup and framework plugins are not implemented. See [capabilities and roadmap](CAPABILITIES.md).
 
 ### How do I report a problem?
 

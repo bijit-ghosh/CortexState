@@ -83,6 +83,26 @@ class ApiTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Client("http://example.com", KEY_A)
 
+    def test_dashboard_assets_and_headers(self):
+        for path in ('/dashboard', '/dashboard/app.js', '/dashboard/style.css'):
+            with urlopen(self.url + path, timeout=5) as response:
+                self.assertEqual(response.status, 200)
+                self.assertIn("frame-ancestors 'none'", response.headers['Content-Security-Policy'])
+                self.assertNotIn(KEY_A.encode(), response.read())
+
+    def test_named_sdk_methods_and_stats(self):
+        scope = {'user': 'sdk'}
+        record = self.client.add('sdk supports memory', scope=scope)
+        self.assertEqual(self.client.stats(scope=scope)['live'], 1)
+        self.assertEqual(self.client.search('memory', scope=scope, ranking='bm25')[0]['id'], record['id'])
+        self.assertEqual(self.client.get(record['id'], scope=scope)['revision'], 1)
+        self.client.delete(record['id'], scope=scope, expected_revision=1)
+
+    def test_unconfigured_model_fails_explicitly(self):
+        with self.assertRaises(HTTPError) as caught:
+            self.client.answer('hello', scope={'user':'alice'})
+        self.assertEqual(caught.exception.code, 503)
+
 
 if __name__ == "__main__":
     unittest.main()

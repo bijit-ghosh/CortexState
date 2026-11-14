@@ -1,9 +1,14 @@
 {
-  "name": "@cortexstate/client",
-  "version": "0.1.0",
-  "private": true,
+  "name": "cortexstate-client",
+  "version": "0.2.0",
+  "description": "JavaScript and TypeScript client for CortexState memory services",
+  "license": "MIT",
+  "author": "Bijit Ghosh",
   "type": "module",
-  "exports": "./index.mjs",
+  "exports": {".": {"types": "./index.d.ts", "import": "./index.mjs"}},
+  "types": "./index.d.ts",
+  "files": ["index.mjs", "index.d.ts", "README.md", "LICENSE"],
+  "repository": {"type":"git","url":"git+https://github.com/bijit-ghosh/CortexState.git","directory":"sdk/javascript"},
   "engines": {"node": ">=20"},
   "scripts": {"test": "node --test test.mjs"}
 }
