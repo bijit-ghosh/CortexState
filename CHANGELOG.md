@@ -2,6 +2,7 @@
 
 ## 0.3.0 — bounded service and optional Rust ranking core
 
+- Release assets: Python wheel and source archive, JavaScript tarball, optional Rust wheels for Linux/Windows/macOS and Python 3.10/3.12, and GitHub source archives.
 - Added an optional PyO3 Rust BM25 scorer with a deterministic Python fallback and score-parity coverage.
 - Capped HTTP handler concurrency, bounded the connection queue, tightened Content-Length validation, and retained socket timeouts.
 - Enabled SQLite WAL, explicit busy timeout and synchronous policy; indexed expiry and erasure lookups.

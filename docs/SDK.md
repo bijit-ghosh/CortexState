@@ -17,7 +17,7 @@ Install the generated archive in your application: `npm install /path/to/cortexs
 
 ## Package artifacts and public registries
 
-The **Build SDK packages** GitHub Actions workflow builds a Python wheel/source archive and npm tarball on demand or on a version tag, then uploads them as workflow artifacts. It does not publish to PyPI/npm automatically.
+The **Build and release CortexState packages** GitHub Actions workflow builds the Python wheel/source archive, JavaScript tarball, and optional Rust wheels for Python 3.10/3.12 across Linux, Windows, and macOS runners. When a matching versioned GitHub release is published, it attaches those files to that release; on manual dispatch, it uploads them as workflow artifacts. It does not publish to PyPI/npm.
 
 Public registry release requires owner accounts, verified email, required authentication, an available package name, and publisher configuration. The names in this source are proposed package names, not a reservation or a claim of registry ownership. Do not install an unrelated registry package merely because its name matches.
 
