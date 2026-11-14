@@ -29,6 +29,24 @@ writer_reward(t) = mean(task_score[t+1 : t+K])
 
 The actor reward combines current task quality with bounded, verifier-confirmed reusable discovery. Safety violations are constraints that fail the run; do not trade them for task reward. The windowed change is only an attribution proxy: other tasks and later writes also affect the result, so compare matched rollouts and report variance. Never reward “exploration” based only on activity, novelty of wording, or the model's own claim that a discovery is useful.
 
+The repo includes framework-neutral calculations for these signals; the trainer decides how to consume eligible samples:
+
+```python
+from cortexstate.rl import actor_reward, writer_improvement_reward, group_relative_advantages
+
+actor = actor_reward(
+    task_score=0.8, discovery_score=0.6, discovery_verified=True,
+    safety_pass=True, beta=0.1, extra_tokens=120, token_cost=0.0001,
+)
+writer = writer_improvement_reward(
+    previous_task_scores=[0.4, 0.5], future_task_scores=[0.6, 0.7],
+    safety_pass=True, memory_growth_bytes=240, memory_cost=0.00001,
+)
+actor_advantages = group_relative_advantages([0.3, 0.5, actor["reward"]])
+```
+
+Unsafe rollouts return `eligible=False` and no numeric reward so a caller can exclude them from policy updates. `group_relative_advantages` should only compare equivalent role/task-position samples. Discovery verification, task scoring, reward weights, rollout grouping, and the optimizer remain the trainer's responsibility.
+
 ## Why add this lane
 
 The current CortexState loop can collect evidence, compare a candidate with a baseline, reject regressions, and promote a reviewed lesson. That is enough for practical memory updates and deterministic hill-climbing. It does not train a model to seek information that will help later tasks, decide which experience is worth keeping, or improve its own memory-writing judgment. Sequential RL can train those actor and writer decisions together when the deployment exposes trainable weights and credible rewards.
@@ -53,7 +71,7 @@ Evaluate on whole held-out streams, not randomly split individual tasks from the
 
 ## Implementation status
 
-**Architecture and training contract only.** CortexState does not ship a trainer, reward model, rollout worker, RL dependency, automatic data exporter, or weight-update path. The existing API and dashboard continue to handle deployment outcomes and reviewed memory lessons. An RL adapter is a separate future package for a chosen trainable model stack; it must emit candidate lessons and scorecards that pass CortexState's existing deployment gate.
+**Experimental reward primitives and training contract; trainer not included.** `cortexstate.rl` provides actor reward, delayed writer-improvement reward, hard safety eligibility, and group-relative advantage calculations without adding an RL dependency. These helpers do not yet have dedicated failure tests. CortexState does not ship a trainer, reward model, rollout worker, automatic data exporter, or weight-update path. The existing API and dashboard continue to handle deployment outcomes and reviewed memory lessons. A trainer adapter is a separate future package for a chosen trainable model stack; it must emit candidate lessons and scorecards that pass CortexState's existing deployment gate.
 
 ## Reference
 

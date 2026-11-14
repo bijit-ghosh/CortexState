@@ -8,7 +8,7 @@
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve scoped context, record deployment outcomes, and promote reusable lessons only after evaluation and approval. Use it through Python, TypeScript, or its authenticated HTTP API; model and harness identities are provenance, not dependencies.
 
-**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. An optional offline RL training lane is documented for models whose weights you can train; no RL trainer ships. Models and harnesses may change while experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) and the [RL training design](docs/RL-TRAINING.md) for scope and limits.
+**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Experimental offline RL reward helpers support models whose weights you can train; no RL trainer ships. Models and harnesses may change while experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) and the [RL training design](docs/RL-TRAINING.md) for scope and limits.
 
 [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Continual improvement](docs/CONTINUAL-IMPROVEMENT.md) · [Optional RL](docs/RL-TRAINING.md) · [API](docs/API.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
@@ -56,6 +56,7 @@ All three use the same memory engine. There is no CortexState hosted account or 
 | Improve across models, harnesses, and skills | Stage reusable lessons through a shared API; no provider-specific model assumptions |
 | Protect quality while improving | Compare candidate and baseline on a held-out suite; require no safety, quality, token, or latency regression plus one strict gain |
 | Control what becomes memory | Reviewer approval is required; rollback removes the active lesson while retaining its scorecard |
+| Train memory policy when you own the weights | Optional actor/writer RL reward helpers; no model trainer or weight updates are bundled |
 
 ## Quick start
 
