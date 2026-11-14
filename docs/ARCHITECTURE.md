@@ -4,7 +4,7 @@
 
 Version 0.4 adds an outcome ledger and evidence-gated lesson lifecycle. The HTTP API is the interoperability boundary: models, harnesses, and skills can change while the same exact-scope memory and outcome records remain available. Python remains the reference implementation; TypeScript and other runtimes can use the HTTP API. Version 0.3 added an optional batch BM25 scorer in Rust, with a portable Python fallback. The dashboard polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
 
-![Animated CortexState runtime memory path and optional offline RL lane](../assets/cortexstate-learning-loop.gif)
+![Animated CortexState architecture: model- and harness-neutral runtime memory, reviewed deployment learning, proposed CAMI interchange, and an optional offline RL lane](../assets/cortexstate-learning-loop.gif)
 
 ```mermaid
 flowchart TB

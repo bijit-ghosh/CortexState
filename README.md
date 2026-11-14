@@ -2,7 +2,7 @@
 
 [![CortexState checks](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml/badge.svg)](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml)
 
-<p align="center"><img src="assets/cortexstate-learning-loop.gif" alt="Animated CortexState architecture: shared runtime memory and an optional offline actor-writer reinforcement-learning lane for trainable models" width="100%"></p>
+<p align="center"><img src="assets/cortexstate-learning-loop.gif" alt="Animated CortexState architecture showing model- and harness-neutral memory retrieval, reviewed deployment learning, the proposed CAMI interchange profile, and a separate optional offline reinforcement-learning lane" width="100%"></p>
 
 **One inspectable memory and improvement layer for every model, harness, and skill.**
 
