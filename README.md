@@ -2,11 +2,13 @@
 
 [![CortexState checks](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml/badge.svg)](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml)
 
+<p align="center"><img src="assets/cortexstate-banner.svg" alt="CortexState: scoped, inspectable memory with retrieval and revision history" width="100%"></p>
+
 **Memory your application can inspect, scope, revise, and forget.**
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve relevant context, and track changes without tying your application to one model provider. Run the Python library in your application or expose it through an authenticated HTTP service.
 
-**Version 0.2.0 — developer preview.** CortexState combines a memory API, a live operator dashboard, Python/TypeScript SDKs, and opt-in model-backed embeddings, extraction, and answers. Start with the local demo, then connect your provider credentials for model calls. See [capabilities](docs/CAPABILITIES.md) for the implemented scope and deployment limits.
+**Version 0.3.0 — developer preview.** CortexState combines a memory API, a live operator dashboard, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Opt-in model-backed embeddings, extraction, and answers remain provider-configurable. See [capabilities](docs/CAPABILITIES.md) for the implemented scope and deployment limits.
 
 [Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Customization](docs/CUSTOMIZATION.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
@@ -48,6 +50,7 @@ All three use the same memory engine. There is no CortexState hosted account or 
 | Control retention | Expiry exclusion, explicit purge, and deletion of history/replay records |
 | Use a different model | Supply your own embedding or fact-extraction callable |
 | Connect another runtime | Python HTTP client and JavaScript client for trusted backend services |
+| Accelerate BM25 ranking | Optional Rust companion wheel scores a document batch; Python reference path remains available |
 
 ## Quick start
 

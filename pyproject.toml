@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cortexstate"
-version = "0.2.0"
+version = "0.3.0"
 description = "Inspectable, scoped memory for AI applications"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,17 +12,17 @@ license = {text = "MIT"}
 authors = [{name = "Bijit Ghosh"}]
 dependencies = []
 
-[project.optional-dependencies]
-openai = ["openai>=2,<3"]
-
-[project.scripts]
-cortexstate = "cortexstate.cli:main"
-
 [tool.setuptools.packages.find]
 include = ["cortexstate*"]
 
 [tool.setuptools.package-data]
 cortexstate = ["dashboard/*.html", "dashboard/*.css", "dashboard/*.js", "py.typed"]
+
+[project.optional-dependencies]
+openai = ["openai>=2,<3"]
+
+[project.scripts]
+cortexstate = "cortexstate.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/bijit-ghosh/CortexState"

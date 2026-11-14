@@ -4,6 +4,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
 from pathlib import Path
+from socketserver import ThreadingMixIn
+import threading
 from urllib.parse import urlsplit
 
 from .memory import Conflict, NotFound, Scope, string
@@ -26,8 +28,34 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
         string(tenant, "tenant")
     credentials = dict(credentials)
 
+    class BoundedThreadingHTTPServer(ThreadingMixIn, ThreadingHTTPServer):
+        # Bounded concurrency prevents untrusted connection floods exhausting threads.
+        daemon_threads = True
+        request_queue_size = 64
+        max_workers = 32
+
+        def __init__(self, *args, **kwargs):
+            self._slots = threading.BoundedSemaphore(self.max_workers)
+            super().__init__(*args, **kwargs)
+
+        def process_request(self, request, client_address):
+            if not self._slots.acquire(blocking=False):
+                request.close()
+                return
+            try:
+                super().process_request(request, client_address)
+            except Exception:
+                self._slots.release()
+                raise
+
+        def process_request_thread(self, request, client_address):
+            try:
+                super().process_request_thread(request, client_address)
+            finally:
+                self._slots.release()
+
     class Handler(BaseHTTPRequestHandler):
-        server_version = "CortexState/0.2"
+        server_version = "CortexState/0.3"
         sys_version = ""
 
         def setup(self):
@@ -84,6 +112,8 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                 lengths = self.headers.get_all("Content-Length", [])
                 if len(lengths) != 1:
                     return self.reply(411, {"error": "one Content-Length is required"})
+                if not lengths[0].isascii() or not lengths[0].isdigit():
+                    return self.reply(400, {"error": "invalid_content_length"})
                 size = int(lengths[0])
                 if not 0 < size <= 65536:
                     return self.reply(413, {"error": "body must be between 1 and 65536 bytes"})
@@ -140,4 +170,4 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                 log.error("request failed; inspect service configuration (content not logged)")
                 self.reply(500, {"error": "internal_error"})
 
-    return ThreadingHTTPServer((host, port), Handler)
+    return BoundedThreadingHTTPServer((host, port), Handler)

@@ -2,7 +2,7 @@
 
 Mem0's public repository was reviewed as a product reference. This table describes CortexState itself; it is not a benchmark or an assertion that the projects are interchangeable.
 
-| Capability | CortexState 0.2.0 |
+| Capability | CortexState 0.3.0 |
 | --- | --- |
 | Persistent scoped memory | Implemented: SQLite and exact tenant/user/agent/session scope |
 | Python integration | Implemented: local library and HTTP client |

@@ -2,7 +2,7 @@
 
 ## Deployment boundary
 
-This preview uses Python's stdlib threaded HTTP server. Use it locally or on a private development network. An internet deployment requires a reviewed gateway for TLS, rate limits, connection limits, request timeouts, and monitoring; the included server has no built-in quotas or production availability claim. Do not expose the SQLite file or embed tenant keys in a public frontend.
+This preview uses Python's stdlib threaded HTTP server with a 32-handler concurrency cap, a 64-connection accept queue, and a 10-second socket timeout. Use it locally or on a private development network. An internet deployment still requires a reviewed gateway for TLS, rate limits, request quotas, and monitoring; the included server has no built-in per-tenant quotas or production availability claim. Do not expose the SQLite file or embed tenant keys in a public frontend.
 
 The Docker recipe runs as a non-root user and Compose binds only to loopback. Use `docker compose config` to validate your resolved configuration without sharing its output: it contains credentials. Docker execution is not part of the Python test suite.
 
@@ -12,7 +12,7 @@ Generate random keys with at least 32 ASCII characters and map them to tenant ID
 
 ## Persistence, backup, restore
 
-Use a dedicated database file on persistent local storage. Each operation opens and closes its connection; writes are serialized by SQLite. Do not use `:memory:` or a shared network filesystem. Schema version migrations are not supplied in this initial release.
+Use a dedicated database file on persistent local storage. Each operation opens and closes its connection; writes are serialized by SQLite with a bounded 10-second busy wait. Do not use `:memory:` or a shared network filesystem. Schema version migrations are not supplied in this release.
 
 For a consistent backup, stop writers or use SQLite's online backup API. Example with writers stopped:
 

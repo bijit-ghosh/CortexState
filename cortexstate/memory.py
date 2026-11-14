@@ -4,10 +4,21 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 import re
 import sqlite3
 import time
 import uuid
+
+if os.environ.get("CORTEXSTATE_PYTHON_RANKER") == "1":
+    _rust_rank = None
+else:
+    try:
+        import _rust_rank
+    except ModuleNotFoundError as exc:  # Optional native acceleration; pure Python stays portable.
+        if exc.name != "_rust_rank":
+            raise
+        _rust_rank = None
 
 
 class Conflict(Exception):
@@ -65,6 +76,7 @@ class Memory:
             raise ValueError("Use a file path; each operation uses its own connection")
         self.embedding_id = string(embedding_id, "embedding_id") if embedder else "none"
         with self._db() as db:
+            db.execute("PRAGMA journal_mode=WAL")
             db.executescript('''
                 CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS memories (
@@ -72,6 +84,7 @@ class Memory:
                     metadata TEXT NOT NULL, vector TEXT, revision INTEGER NOT NULL,
                     created REAL NOT NULL, updated REAL NOT NULL, expires REAL);
                 CREATE INDEX IF NOT EXISTS by_scope ON memories(scope);
+                CREATE INDEX IF NOT EXISTS by_expiry ON memories(scope, expires);
                 CREATE TABLE IF NOT EXISTS events (
                     seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL,
                     scope TEXT NOT NULL, revision INTEGER NOT NULL, action TEXT NOT NULL,
@@ -81,6 +94,7 @@ class Memory:
                     scope TEXT NOT NULL, key TEXT NOT NULL, fingerprint TEXT NOT NULL,
                     response TEXT NOT NULL, memory_id TEXT NOT NULL,
                     PRIMARY KEY(scope,key));
+                CREATE INDEX IF NOT EXISTS by_request_memory ON requests(scope,memory_id);
             ''')
             db.execute("INSERT OR IGNORE INTO config VALUES ('embedding_id', ?)", (self.embedding_id,))
             configured = db.execute("SELECT value FROM config WHERE key='embedding_id'").fetchone()[0]
@@ -89,9 +103,12 @@ class Memory:
 
     @contextmanager
     def _db(self):
-        db = sqlite3.connect(self.path, timeout=10)
+        db = sqlite3.connect(self.path, timeout=10, isolation_level="DEFERRED")
         db.row_factory = sqlite3.Row
         try:
+            db.execute("PRAGMA foreign_keys=ON")
+            db.execute("PRAGMA busy_timeout=10000")
+            db.execute("PRAGMA synchronous=NORMAL")
             with db:
                 yield db
         finally:
@@ -275,6 +292,10 @@ class Memory:
         documents = [tokens(row["text"]) for row in rows]
         avg_length = sum(map(len, documents)) / max(1, len(documents))
         frequencies = {word: sum(word in doc for doc in documents) for word in query_tokens}
+        rust_scores = None
+        if ranking == "bm25" and _rust_rank is not None:
+            rust_scores = iter(_rust_rank.bm25_batch(
+                sorted(query_tokens), documents, len(rows), frequencies, avg_length))
         scored = []
         for row, document in zip(rows, documents):
             record = self._record(row)
@@ -283,12 +304,10 @@ class Memory:
             words = set(tokens(row["text"]))
             lexical = len(query_tokens & words) / max(1, len(query_tokens))
             if ranking == "bm25":
-                raw = 0.0
-                for word in query_tokens:
-                    frequency = document.count(word)
-                    inverse = math.log(1 + (len(rows)-frequencies[word]+0.5)/(frequencies[word]+0.5))
-                    denominator = frequency + 1.2*(0.25+0.75*len(document)/max(1,avg_length))
-                    raw += inverse * frequency * 2.2 / denominator
+                if rust_scores is not None:
+                    raw = next(rust_scores)
+                else:
+                    raw = _bm25_score(query_tokens, document, len(rows), frequencies, avg_length)
                 lexical = raw / (1 + raw)
             semantic = 0.0
             if vector is not None:
@@ -313,3 +332,17 @@ class Memory:
         content = json.dumps(selected, ensure_ascii=False)
         return {"data": content, "characters": len(content), "memory_ids": [r["id"] for r in selected],
                 "trust": "untrusted_memory_data"}
+
+
+def _bm25_score(query_tokens, document, corpus_size, frequencies, average_length):
+    """Deterministic reference scorer; Rust extension implements this contract."""
+    raw = 0.0
+    for word in sorted(query_tokens):
+        frequency = document.count(word)
+        if not frequency:
+            continue
+        document_frequency = frequencies[word]
+        inverse = math.log1p((corpus_size - document_frequency + 0.5) / (document_frequency + 0.5))
+        denominator = frequency + 1.2 * (0.25 + 0.75 * len(document) / max(1, average_length))
+        raw += inverse * frequency * 2.2 / denominator
+    return raw

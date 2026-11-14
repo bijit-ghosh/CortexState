@@ -2,7 +2,7 @@
 
 ## Components and boundaries
 
-Version 0.2 adds a same-origin operator dashboard over the authenticated API. It polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
+Version 0.2 added a same-origin operator dashboard over the authenticated API. Version 0.3 adds an optional batch BM25 scorer in Rust; Python remains the portable reference path and still owns storage, API, and provider integration. The dashboard polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
 
 ```mermaid
 flowchart TB
@@ -174,7 +174,7 @@ Embeddings run inside an add transaction to preserve the replay guarantee; slow 
 
 ## Retrieval
 
-The default lexical signal is the fraction of unique query words present in a fact. Word splitting is Unicode-aware and case-insensitive, without stemming or language-specific NLP. Search can select `ranking="bm25"`: k1=1.2, b=0.75, with document frequencies calculated over live, scoped, metadata-filtered records. The raw BM25 score is normalized as `raw / (1 + raw)` before blending. This adds ranking, not an index. With an embedder, normalized cosine similarity is clamped at zero and combined as:
+The default lexical signal is the fraction of unique query words present in a fact. Word splitting is Unicode-aware and case-insensitive, without stemming or language-specific NLP. Search can select `ranking="bm25"`: k1=1.2, b=0.75, with document frequencies calculated over live, scoped, metadata-filtered records. The scorer is an optional PyO3 Rust extension in packaged native builds; the Python reference scorer remains the portable fallback. Both use identical token inputs and formulas, with a parity test in CI. The raw BM25 score is normalized as `raw / (1 + raw)` before blending. This adds ranking, not an inverted index. With an embedder, normalized cosine similarity is clamped at zero and combined as:
 
 `score = (1 - semantic_weight) * lexical + semantic_weight * semantic`
 

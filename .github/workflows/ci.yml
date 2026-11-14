@@ -14,10 +14,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: python -m pip install .
+      - run: python -m pip install . maturin
+      - run: cargo test --manifest-path rust/Cargo.toml
+      - run: python -c "from pathlib import Path; Path('work/rust-wheel').mkdir(parents=True, exist_ok=True)"
+      - run: maturin build --release --features python --manifest-path rust/Cargo.toml --out work/rust-wheel
+      - run: python -m pip install --no-index --find-links work/rust-wheel cortexstate-rank
       - run: python -m unittest discover -s tests -v
       - run: node --test sdk/javascript/test.mjs
       - run: node --check cortexstate/dashboard/app.js
@@ -33,4 +39,5 @@ jobs:
           path: |
             work/eval.json
             work/wheels/*
+            work/rust-wheel/*
             work/*.tgz

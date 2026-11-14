@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — bounded service and optional Rust ranking core
+
+- Added an optional PyO3 Rust BM25 scorer with a deterministic Python fallback and score-parity coverage.
+- Capped HTTP handler concurrency, bounded the connection queue, tightened Content-Length validation, and retained socket timeouts.
+- Enabled SQLite WAL, explicit busy timeout and synchronous policy; indexed expiry and erasure lookups.
+- Added an original GitHub README banner and native Rust build coverage to Linux/Windows CI and package builds.
+- Kept memory API, persistence, provider integration, and dashboard in Python; Rust accelerates only BM25 scoring.
+- Versioned as a developer preview; no performance improvement is claimed until measured on a representative workload.
+
 ## 0.2.0 — memory console and SDK packages
 
 - Live operator dashboard with exact scopes, counts, memory editing, history, and retention actions.
