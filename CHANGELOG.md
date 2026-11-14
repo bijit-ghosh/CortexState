@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Publish CAMI 0.1.0 as a proposed, project-maintained open interchange specification with record and bundle JSON Schemas.
+- Document interoperability boundaries, project governance, and evidence-based security, operational, learning, RL, and specification readiness scores.
+- Clarify that CortexState remains a developer preview and does not yet implement CAMI bundle import/export or conformance.
+
 ## 0.4.0 — cross-stack continual improvement
 
 - Added a provider-, harness-, and skill-neutral deployment outcome ledger with exact-scope evidence and idempotent event capture.

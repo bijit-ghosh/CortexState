@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/bijit-ghosh/CortexState/main/spec/schemas/memory-bundle.schema.json",
+  "title": "CortexState Agent Memory Interchange bundle",
+  "description": "Draft CAMI 0.1.0 interchange envelope.",
+  "type": "object",
+  "required": ["format", "version", "exported_at", "records"],
+  "properties": {
+    "format": {"const": "cortexstate-memory-bundle"},
+    "version": {"const": "0.1.0"},
+    "exported_at": {"type": "number", "minimum": 0},
+    "records": {
+      "type": "array",
+      "items": {"$ref": "memory-record.schema.json"}
+    }
+  },
+  "additionalProperties": false
+}

@@ -8,9 +8,9 @@
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve scoped context, record deployment outcomes, and promote reusable lessons only after evaluation and approval. Use it through Python, TypeScript, or its authenticated HTTP API; model and harness identities are provenance, not dependencies.
 
-**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Experimental offline RL reward helpers support models whose weights you can train; no RL trainer ships. Models and harnesses may change while experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) and the [RL training design](docs/RL-TRAINING.md) for scope and limits.
+**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Experimental offline RL reward helpers support models whose weights you can train; no RL trainer ships. The repository now publishes **CAMI 0.1.0**, a proposed open agent-memory interchange specification with JSON Schemas. CAMI is a draft from this project, not an adopted industry standard; the current engine does not yet implement portable bundle import/export or CAMI conformance. See [specification](spec/README.md), [interoperability](docs/INTEROPERABILITY.md), [readiness scorecard](docs/READINESS.md), and [governance](GOVERNANCE.md).
 
-[Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Continual improvement](docs/CONTINUAL-IMPROVEMENT.md) · [Optional RL](docs/RL-TRAINING.md) · [API](docs/API.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
+[Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Open specification](spec/README.md) · [Interoperability](docs/INTEROPERABILITY.md) · [Readiness](docs/READINESS.md) · [Continual improvement](docs/CONTINUAL-IMPROVEMENT.md) · [Optional RL](docs/RL-TRAINING.md) · [API](docs/API.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
 ## Start with your use case
 
@@ -206,6 +206,7 @@ Run `python -m examples.support_workflow` for a synthetic customer-support examp
 - **Deliberate retention:** expiry and deletion have documented, distinct effects.
 - **Provider choice:** model integrations are supplied by your application; the default core is offline.
 - **Evidence before claims:** published results name the fixture, environment, and limitations.
+- **Open interchange:** CAMI versions its record and bundle schemas publicly; interoperability claims stay tied to tested versions and mappings.
 
 ## Project map
 

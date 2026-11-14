@@ -1,5 +1,10 @@
 # CortexState documentation
 
+- [CAMI open interchange specification draft](../spec/README.md)
+- [Interoperability and protocol layers](INTEROPERABILITY.md)
+- [Readiness scorecard](READINESS.md)
+- [Project governance](../GOVERNANCE.md)
+
 ## Learn and run
 
 | Guide | What it answers |
