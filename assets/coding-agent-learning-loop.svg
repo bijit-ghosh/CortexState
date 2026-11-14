@@ -31,7 +31,7 @@
   <text x="68" y="137" class="title">Turn task experience into verified memory</text>
   <text x="68" y="176" class="subtitle">One scoped memory contract across models, harnesses, repositories, and skills.</text>
   <rect x="1420" y="62" width="300" height="42" rx="21" fill="#142f40" stroke="#31576a"/>
-  <text x="1570" y="89" text-anchor="middle" font-size="15" font-weight="800" fill="#8db8ff">CAMI 0.1.0 · PROPOSED DRAFT</text>
+  <text x="1570" y="89" text-anchor="middle" font-size="15" font-weight="800" fill="#8db8ff">MODEL-NEUTRAL · SCOPED MEMORY</text>
 
   <!-- Online context and execution lane -->
   <text x="68" y="235" class="lane" fill="#66e2c0">01  /  BEFORE AND DURING THE TASK</text>
@@ -98,5 +98,5 @@
 
   <line x1="68" y1="985" x2="1732" y2="985" stroke="#29445c" stroke-width="1"/>
   <text x="68" y="1024" class="small">CortexState stores, retrieves, and gates memory changes. The host executes code and owns authorization, evaluation, and deployment.</text>
-  <text x="1720" y="1062" text-anchor="end" font-size="14" font-weight="700" fill="#8db8ff">CAMI 0.1.0 IS A PROPOSED DRAFT, NOT AN ADOPTED INDUSTRY STANDARD</text>
+  <text x="1720" y="1062" text-anchor="end" font-size="14" font-weight="700" fill="#8db8ff">SCOPED MEMORY · EVIDENCE-GATED LEARNING · HOST-CONTROLLED DEPLOYMENT</text>
 </svg>

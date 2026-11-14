@@ -18,7 +18,7 @@ Durable memory needs explicit scope, provenance, expiry, correction, and deletio
 
 ## The architecture has three connected paths
 
-![CortexState architecture for coding agents. The upper path prepares scoped context and gates code changes. The middle path turns deployment evidence into reviewed memory. The lower path shows optional offline policy training for weights the model owner controls. CAMI is a proposed interchange draft.](../../assets/coding-agent-learning-loop.svg)
+![CortexState architecture for coding agents. The upper path prepares scoped context and gates code changes. The middle path turns deployment evidence into reviewed memory. The lower path shows optional offline policy training for weights the model owner controls.](../../assets/coding-agent-learning-loop.svg)
 
 The **runtime path** prepares an agent for a task. The host identifies the repository, branch, model, harness, and skills, checks saved rules against their source, then retrieves task-specific context through the Python library, TypeScript SDK, or trusted HTTP API. The host keeps authorization, tools, and system policy in its own control plane.
 
@@ -96,22 +96,20 @@ The training owner curates consented task streams, freezes a baseline, groups co
 
 The repository includes experimental calculations for actor utility, delayed writer improvement, safety eligibility, and group-relative advantages. It has no rollout service, reward model, trainer, data exporter, or weight-update path. CortexState has no measured RL result. Closed model APIs use the shared-memory and evaluation path.
 
-## An open memory format needs honest scope
+## Learning between coding sessions
 
-CortexState publishes CAMI 0.1.0, a proposed draft for portable agent-memory records and bundles. It defines record shape, versioning, scope, provenance, and safe import expectations. An import cannot grant tenant access or make remembered text trusted policy.
+A coding session should not become a permanent transcript. At task start, the host identifies the tenant, repository, agent, and branch, then checks saved rules against the current source revision. It retrieves only the architecture decisions, coding standards, and checks relevant to the task. The repository’s persistent scope holds approved conventions; a branch or task scope isolates temporary context. The host assigns a retention period to temporary records and purges them when they expire.
 
-CAMI is not an adopted industry standard; this release has no importer, exporter, independent conformance suite, or neutral governance body. Existing work already covers parts of this space. [MCP](https://modelcontextprotocol.io/specification/2025-11-25) standardizes runtime connections to tools and context; [OMIR](https://omir.io/spec/R1/overview.html) defines an at-rest memory format, which overlaps CAMI’s proposed interchange layer. CortexState needs to publish a precise comparison and mapping, then earn independent implementations and neutral governance. A repository and schema do not establish a standard.
+During the task, the harness runs tests, lint, security, and permission checks after each change. It returns failed checks as concrete feedback, asks the agent to revise, and reruns the same gates. A failed gate blocks pull-request creation. CortexState stores the context and later outcome; the host controls repository access, command execution, and the gate itself.
 
-## Measure before claiming impact
+At session end, the application can record a concise outcome with consent, redaction, repository and code revisions, model and harness versions, check results, token use, and latency. It can omit source contents, credentials, and raw transcripts. A candidate lesson may link to several related experiences, but it stays outside normal retrieval until evaluation and approval.
 
-I want CortexState to reduce repeated code search and token use, catch more security defects before review, and lower the rate of production regressions. I use **36% lower token consumption** and **44% fewer production outages** as pilot targets, not measured CortexState results.
+For promotion, run a frozen baseline and candidate against the same task suite. Check task success, safety, tokens, and latency. Preserve final holdouts and acceptance criteria from agent writes. If the candidate passes the configured gate and an authorized reviewer approves it, promote the lesson into the repository’s persistent scope. Later sessions can retrieve it. Monitor those sessions and roll back the lesson if it causes a regression.
 
-A credible pilot needs a matched baseline: the same task set, repository snapshots, model, harness, tools, and checks. Measure tokens per completed task, time to first relevant edit, completion rate, check pass rate, security findings fixed before merge, post-merge regressions, and incident exposure. Report sample size, evaluation versions, and uncertainty. Outage reduction needs enough deployment time and a comparable control group.
+## Outcomes this architecture is designed to support
 
-Did verified project memory reduce repeated searches, escaped defects, or resource use while preserving task quality and safety? The evaluation must answer that, not the launch copy.
+The practical goal is to start each task with relevant, current project knowledge. That can reduce repeated repository searches and unnecessary prompt context. Verified lessons can help the agent avoid repeating known mistakes. A host-enforced check loop can catch test or security failures before review, give the agent a chance to fix them, and block a change until it passes. Scoped records let the same project memory serve different models and harnesses without giving every agent unrestricted access.
 
-## What I’m building
+These are expected workflow benefits, not guaranteed results. They depend on accurate source checks, relevant retrieval, trustworthy evaluations, and a host that enforces the gates. Measure each integration against its own baseline: context tokens per task, time to first relevant edit, completed-task rate, required-check pass rate, security defects fixed before review, and regressions after deployment. Use those results to decide which retrieval rules or lessons deserve another session.
 
-CortexState gives agent builders scoped memory, lesson provenance, and a controlled way to let deployment experience shape future context. Hosts can reuse verified repository knowledge across sessions and model choices, then submit lessons for evaluation and approval.
-
-The next steps are portable import/export, a conformance suite, stronger service authorization, host integrations for repository checks, and a reproducible coding-agent evaluation. I’m building continuous learning that survives model and harness changes while keeping every memory update inspectable, testable, and reversible.
+The improvement cycle stays explicit: **retrieve, act, verify, record, evaluate, approve, and observe**. CortexState carries the memory and evidence between sessions. The host decides what the agent may do, and the evaluation decides which lessons help the next task.
