@@ -10,6 +10,7 @@
 | [Use cases](USE-CASES.md) | How should I apply CortexState to an actual application? |
 | [Integration patterns](INTEGRATION-PATTERNS.md) | Where does memory fit in a model or agent request? |
 | [Continual improvement](CONTINUAL-IMPROVEMENT.md) | How do deployment outcomes become reviewed, evaluated lessons across model and agent stacks? |
+| [Optional RL training lane](RL-TRAINING.md) | What reinforcement-learning method fits memory writing, when is it useful, and what is not implemented yet? |
 
 ## Configure and operate
 

@@ -2,15 +2,15 @@
 
 [![CortexState checks](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml/badge.svg)](https://github.com/bijit-ghosh/CortexState/actions/workflows/ci.yml)
 
-<p align="center"><img src="assets/cortexstate-banner.svg" alt="CortexState: shared memory and evidence-gated improvement for models, harnesses, and skills" width="100%"></p>
+<p align="center"><img src="assets/cortexstate-learning-loop.gif" alt="Animated CortexState architecture: shared runtime memory and an optional offline actor-writer reinforcement-learning lane for trainable models" width="100%"></p>
 
 **One inspectable memory and improvement layer for every model, harness, and skill.**
 
 CortexState is an original, local-first memory toolkit by **Bijit Ghosh**. Store confirmed facts, retrieve scoped context, record deployment outcomes, and promote reusable lessons only after evaluation and approval. Use it through Python, TypeScript, or its authenticated HTTP API; model and harness identities are provenance, not dependencies.
 
-**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. Models and harnesses may change; experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) for implemented scope and deployment limits.
+**Version 0.4.0 — developer preview.** CortexState combines scoped memory with a deployment learning ledger, a live operator review console, Python/TypeScript SDKs, and an optional Rust BM25 scorer with a portable Python fallback. An optional offline RL training lane is documented for models whose weights you can train; no RL trainer ships. Models and harnesses may change while experience records and reviewed lessons use the same provider-neutral API. See [capabilities](docs/CAPABILITIES.md) and the [RL training design](docs/RL-TRAINING.md) for scope and limits.
 
-[Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Customization](docs/CUSTOMIZATION.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
+[Quick start](#quick-start) · [Architecture](docs/ARCHITECTURE.md) · [Continual improvement](docs/CONTINUAL-IMPROVEMENT.md) · [Optional RL](docs/RL-TRAINING.md) · [API](docs/API.md) · [Evaluation](evals/README.md) · [Security](SECURITY.md)
 
 ## Start with your use case
 
@@ -129,9 +129,13 @@ flowchart LR
   P -->|Pass| S[Operator approval]
   S --> T[Promote lesson into scoped memory]
   T --> G
+  A --> U[Optional offline RL adapter for trainable models]
+  U --> V[Co-train actor and memory writer on related task streams]
+  V --> W[Held-out stream gate and canary]
+  W -->|Approved policy version| A
 ```
 
-The library executes in your process. The HTTP layer adds key authentication and tenant assignment. Model-generated facts and improvement lessons remain proposals until reviewed and evaluated; they are never silently committed. CortexState does not train model weights or autonomously tune a live agent: your deployment records outcomes, runs the evaluator, and approves changes. The shared memory and experience format lets different models, harnesses, and skills contribute to and retrieve the same authorized knowledge. [Detailed architecture](docs/ARCHITECTURE.md) · [continual improvement design](docs/CONTINUAL-IMPROVEMENT.md).
+The library executes in your process. The HTTP layer adds key authentication and tenant assignment. Model-generated facts and improvement lessons remain proposals until reviewed and evaluated; they are never silently committed. CortexState does not train model weights or autonomously tune a live agent: your deployment records outcomes, runs the evaluator, and approves changes. If you own trainable weights, the separate RL lane can optimize actor exploration and memory writing offline; the same shared memory API remains available to closed model APIs. [Detailed architecture](docs/ARCHITECTURE.md) · [continual improvement design](docs/CONTINUAL-IMPROVEMENT.md) · [RL training design](docs/RL-TRAINING.md).
 
 ## Run the service
 

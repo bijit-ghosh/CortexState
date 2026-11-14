@@ -21,6 +21,7 @@ This table describes CortexState's shipped surface and boundaries. It makes no c
 | Deployment learning ledger | Implemented: consent-asserted, scoped outcome records, evidence-linked lesson candidates, scorecards, approval, rejection, rollback, and deletion |
 | Model/harness/skill neutrality | Implemented at the HTTP data/API boundary; no specific provider or agent framework is required, but integrations must call the API |
 | Evaluation execution | Caller-operated: CortexState records caller-supplied scorecards and enforces numeric promotion gates; it does not run agents, benchmarks, or evaluators |
+| Reinforcement learning for memory policy | Design only: optional offline actor–writer training for trainable models; no trainer, reward model, rollout worker, or weight updates ship |
 | Dashboard | Implemented: live polling, scopes, statistics, CRUD, history, search, model questions, reviewed proposals, outcome capture, and lesson review/promotion |
 | Browser extension | Not implemented |
 | Managed cloud / signup / billing | Not implemented |
@@ -39,6 +40,6 @@ This table describes CortexState's shipped surface and boundaries. It makes no c
 2. **Provider integrations:** implement explicit adapters, test failures/timeouts, measure extraction faithfulness and retrieval quality with actual model versions and usage logs.
 3. **Scale:** profile realistic per-scope data sizes; add indexed retrieval and queueing only with latency, recall, and isolation evidence.
 4. **Operations:** package a deployment-grade server, migrations, backups, quotas, observability, key rotation, and recovery drills.
-5. **Learning operations:** add an evaluator/rollout service with protected suites, statistical confidence, canary monitoring, durable audit events, and role-based approvals; then add optional MCP/framework adapters.
+5. **Learning operations:** add an evaluator/rollout service with protected suites, statistical confidence, canary monitoring, durable audit events, and role-based approvals; prototype the separately packaged RL adapter only after sequence data and reward validity are established; then add optional MCP/framework adapters.
 
 A release may promote a capability to “implemented” only when code, a runnable example, failure tests, and documentation are present. Production readiness additionally requires workload and security review; passing the included fixture is insufficient.

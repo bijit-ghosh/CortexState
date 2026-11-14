@@ -4,6 +4,8 @@
 
 Version 0.4 adds an outcome ledger and evidence-gated lesson lifecycle. The HTTP API is the interoperability boundary: models, harnesses, and skills can change while the same exact-scope memory and outcome records remain available. Python remains the reference implementation; TypeScript and other runtimes can use the HTTP API. Version 0.3 added an optional batch BM25 scorer in Rust, with a portable Python fallback. The dashboard polls scoped statistics and records every three seconds, and sends explicit model requests to the server when enabled. Provider credentials remain server-side. The dashboard stores no service key in browser storage. See [dashboard](DASHBOARD.md) and [model configuration](MODELS.md).
 
+![Animated CortexState runtime memory path and optional offline RL lane](../assets/cortexstate-learning-loop.gif)
+
 ```mermaid
 flowchart TB
   subgraph Caller[Trusted application boundary]
@@ -67,6 +69,12 @@ flowchart LR
 The ledger stores short experiences, provenance, evidence links, candidate lessons, and caller-submitted scorecards in the same SQLite database. Only a promoted lesson enters ordinary memory retrieval. The HTTP contract does not depend on the model, harness, skill format, or provider. Integrators still need to map task completion signals into the shared outcome schema and call the API; CortexState does not automatically inspect arbitrary agent traces.
 
 The evaluator runs outside CortexState. The service checks declared held-out status, scorecard ranges, zero reported safety regressions, no regression in success/tokens/latency, and at least one strict improvement. These checks are a promotion gate, not proof of evaluator independence, statistical significance, or suite integrity. Your backend must protect evaluator credentials and test data, authorize the approver, and enforce immutable acceptance criteria.
+
+## Optional offline RL lane
+
+For teams that control trainable model weights, an offline adapter can turn approved task streams into actor/writer rollouts. The actor is rewarded for the current task and independently verified reusable discoveries; the writer is rewarded when its memory improves later tasks relative to a matched baseline, less token, latency, and memory-growth costs. A model owner's trainer updates the policy. A separate held-out stream gate and canary decide whether to deploy that version.
+
+This is a training extension, not a CortexState server capability. It does not run for closed model APIs, mutate production memories, or bypass the existing review and evaluation boundary. The [RL training design](RL-TRAINING.md) defines the proposed data and reward contract and its current implementation status.
 
 ## Request sequence
 

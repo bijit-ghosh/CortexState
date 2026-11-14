@@ -7,6 +7,7 @@
 - Added matching authenticated HTTP operations and Python/TypeScript SDK methods, including candidate listing.
 - Added a live dashboard panel for recording consented outcomes and reviewing staged candidates and scorecards.
 - Added the continual-improvement guide and deployment-learning architecture flow; clarified that evaluation and model-weight training run outside CortexState.
+- Added an optional offline actor–writer RL training design for trainable model weights; the repository does not include an RL trainer or weight-update path.
 - Aligned Python, JavaScript, Rust, CI, and release artifact versions at 0.4.0. No performance or benchmark results are claimed.
 
 ## 0.3.0 — bounded service and optional Rust ranking core

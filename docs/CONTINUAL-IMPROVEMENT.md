@@ -102,6 +102,8 @@ Treat deployment as a source of candidate training examples, not as an automatic
 
 This hill-climb improves **retrieval policy and reusable agent procedures** with external memory. To train model weights, export a separately consented and scrubbed dataset to your chosen training system, train there, and re-run the same protected evaluations before deployment. CortexState does not fine-tune models.
 
+For trainable open-weight policies, a separate optional RL lane can co-train task solving and memory writing over related task streams. The actor earns task utility plus a capped, verifier-confirmed discovery signal; the writer earns credit for measured improvement on later tasks. This does not apply to hosted APIs whose weights cannot be updated. See the [RL training design](RL-TRAINING.md) for the reward, data, evaluation, and implementation boundaries.
+
 ## Model and harness interoperability
 
 The language-neutral HTTP endpoints are `POST /v1/learning/record`, `/list`, `/candidates`, `/propose`, `/evaluate`, `/promote`, `/reject`, `/rollback`, and `/delete-experience`. Python exposes `LearningLedger` for embedded use and named methods on `Client`; JavaScript exposes matching methods. Other runtimes can use the API directly. An MCP adapter can expose the same operations as tools, but a bundled MCP server is not included yet.
