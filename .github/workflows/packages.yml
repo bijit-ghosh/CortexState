@@ -20,7 +20,8 @@ jobs:
           node-version: '22'
       - run: python -m pip install build maturin
       - run: python -m build
-      - run: maturin build --release --features python --manifest-path rust/Cargo.toml --out dist/rust-core
+      - run: maturin build --release --features python --out ../dist/rust-core
+        working-directory: rust
       - run: npm pack --pack-destination ../../dist
         working-directory: sdk/javascript
       - uses: actions/upload-artifact@v4
