@@ -4,7 +4,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
 from pathlib import Path
-from socketserver import ThreadingMixIn
 import threading
 from urllib.parse import urlsplit
 
@@ -28,7 +27,7 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
         string(tenant, "tenant")
     credentials = dict(credentials)
 
-    class BoundedThreadingHTTPServer(ThreadingMixIn, ThreadingHTTPServer):
+    class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         # Bounded concurrency prevents untrusted connection floods exhausting threads.
         daemon_threads = True
         request_queue_size = 64
