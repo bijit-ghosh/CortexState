@@ -56,7 +56,7 @@ RUNTIME = [
     ("Host policy", "Consent · identity\ntool authorization", TEAL),
     ("Connectors", "Python · TypeScript\ntrusted HTTP API", BLUE),
     ("Scope guard", "Tenant · user\nagent · session", BLUE),
-    ("Memory core", "Facts · revisions\nexpiry · deletion", TEAL),
+    ("Memory core", "Project rules · facts\nversions · retention", TEAL),
     ("Recall builder", "Filter · rank\nbudgeted context", BLUE),
     ("Agent response", "Model uses context\nunder host policy", TEAL),
 ]
@@ -68,7 +68,7 @@ LEARNING = [
     ("1  Observe", "Task outcome\nsuccess · correction\nfailure · safety", TEAL),
     ("2  Protect data", "Consent · redact\nexact scope\nsource provenance", TEAL),
     ("3  Stage lesson", "Link evidence\npropose · revise\nreject", TEAL),
-    ("4  Evaluate", "Same protected suite\nbaseline vs candidate\nquality · safety · cost", BLUE),
+    ("4  Evaluate", "Same protected suite\nbaseline vs candidate\ntests · safety · cost", BLUE),
     ("5  Approve", "No safety regression\nstrict measured gain\nreviewer decision", AMBER),
     ("6  Promote", "Scoped memory\nversioned change\nrollback available", TEAL),
 ]

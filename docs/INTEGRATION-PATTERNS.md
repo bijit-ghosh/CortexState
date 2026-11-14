@@ -18,6 +18,12 @@ flowchart TD
 
 Your application can own its model invocation or use CortexState's optional OpenAI-backed proposal and answer endpoints. Other providers and local models remain possible through application callables. No framework-specific or MCP adapter is bundled. See [model configuration](MODELS.md).
 
+## Prepare a coding agent before it edits
+
+For repository work, resolve the repository identity and branch in the host application, confirm that saved architecture and coding rules still match their source commit, then retrieve only the few rules relevant to the task. Attach the result to the coding request as untrusted reference data. Keep current system instructions, tool permissions, and repository policy authoritative.
+
+After the edit, the host runs its required tests and security checks. A failed check sends a specific finding back to the agent for revision; the host reruns the check and blocks pull-request creation until every required gate passes. Record the redacted outcome and versions, then stage a reusable lesson for separate evaluation and approval. CortexState stores and retrieves the context and outcomes; repository scanning, command execution, fix loops, and PR enforcement belong to the coding harness or CI. See [the coding-agent use case](USE-CASES.md#coding-agents-load-project-rules-before-editing) for an example and measurement plan.
+
 ## Prepare context without calling a model
 
 ```python

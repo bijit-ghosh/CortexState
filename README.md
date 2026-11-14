@@ -21,6 +21,7 @@ CortexState keeps useful facts separate from a conversation transcript. Your app
 | Start local memory with one command | [Quick launch and setup](docs/GETTING-STARTED.md) |
 | Understand the write, retrieval, and deletion paths | [Architecture and diagrams](docs/ARCHITECTURE.md) |
 | Turn production outcomes into reusable, evaluated lessons | [Continual improvement guide](docs/CONTINUAL-IMPROVEMENT.md) |
+| Give coding agents project rules before they edit | [Coding-agent context and pre-PR checks](docs/USE-CASES.md#coding-agents-load-project-rules-before-editing) |
 | Add memory to an existing agent or application | [Integration patterns](docs/INTEGRATION-PATTERNS.md) |
 | Build a support assistant, coding helper, or workflow agent | [Practical use cases](docs/USE-CASES.md) |
 | Choose scopes, retention, and retrieval settings | [Customization](docs/CUSTOMIZATION.md) |

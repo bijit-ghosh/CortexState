@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add a coding-agent workflow for source-checked project rules, budgeted pre-edit recall, verification-driven revision, and measured outcome learning; token and outage reductions are stated as pilot targets, not results.
 - Publish CAMI 0.1.0 as a proposed, project-maintained open interchange specification with record and bundle JSON Schemas.
 - Document interoperability boundaries, project governance, and evidence-based security, operational, learning, RL, and specification readiness scores.
 - Clarify that CortexState remains a developer preview and does not yet implement CAMI bundle import/export or conformance.
