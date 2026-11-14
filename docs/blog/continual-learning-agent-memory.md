@@ -100,7 +100,7 @@ The repository includes experimental calculations for actor utility, delayed wri
 
 CortexState publishes CAMI 0.1.0, a proposed draft for portable agent-memory records and bundles. It defines record shape, versioning, scope, provenance, and safe import expectations. An import cannot grant tenant access or make remembered text trusted policy.
 
-CAMI is not an adopted industry standard; this release has no importer, exporter, independent conformance suite, or neutral governance body. Existing work covers adjacent layers: [MCP](https://modelcontextprotocol.io/specification/2025-11-25) connects AI applications to tools and context, while [OMIR](https://omir.io/spec/R1/overview.html) defines an at-rest memory format. CAMI needs explicit mappings and independent implementations. A repository and schema do not establish a standard.
+CAMI is not an adopted industry standard; this release has no importer, exporter, independent conformance suite, or neutral governance body. Existing work already covers parts of this space. [MCP](https://modelcontextprotocol.io/specification/2025-11-25) standardizes runtime connections to tools and context; [OMIR](https://omir.io/spec/R1/overview.html) defines an at-rest memory format, which overlaps CAMI’s proposed interchange layer. CortexState needs to publish a precise comparison and mapping, then earn independent implementations and neutral governance. A repository and schema do not establish a standard.
 
 ## Measure before claiming impact
 
