@@ -14,5 +14,5 @@
       "items": {"$ref": "memory-record.schema.json"}
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
