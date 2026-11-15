@@ -141,23 +141,23 @@ The library executes in your process. The HTTP layer adds key authentication and
 
 ## Run the service
 
-Generate a secret with `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Set a JSON mapping of that secret to a tenant. Replace `YOUR_GENERATED_SECRET` below; never commit it.
+Generate a secret with `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Map it to a tenant and only the operations that this backend needs. Replace `YOUR_GENERATED_SECRET` below; never commit it.
 
 PowerShell:
 
 ```powershell
-$env:CORTEXSTATE_KEYS = '{"YOUR_GENERATED_SECRET":"my-team"}'
-python -m cortexstate --db cortexstate.db serve
+$env:CORTEXSTATE_KEYS = '{"YOUR_GENERATED_SECRET":{"tenant":"my-team","principal":"app-backend","permissions":["memory:read","memory:write","learning:record"]}}'
+python -m cortexstate --db cortexstate.db serve --requests-per-minute 600 --burst 60
 ```
 
 Bash:
 
 ```bash
-export CORTEXSTATE_KEYS='{"YOUR_GENERATED_SECRET":"my-team"}'
-python -m cortexstate --db cortexstate.db serve
+export CORTEXSTATE_KEYS='{"YOUR_GENERATED_SECRET":{"tenant":"my-team","principal":"app-backend","permissions":["memory:read","memory:write","learning:record"]}}'
+python -m cortexstate --db cortexstate.db serve --requests-per-minute 600 --burst 60
 ```
 
-The server rejects empty key maps and keys shorter than 32 ASCII characters. It listens on `127.0.0.1:8787`. Use `docker compose up --build` for the supplied container configuration; the same environment variable is required. Container execution is a separate validation target, not implied by passing Python tests.
+The server rejects empty key maps, keys shorter than 32 ASCII characters, and tenant-wide keys unless `--allow-legacy-tenant-keys` is explicitly enabled for a migration. Rate limiting is per key and process-local; add gateway limits for multi-process deployments. It listens on `127.0.0.1:8787`. Use `docker compose up --build` for the supplied container configuration; the same structured key policy is required. Container execution is a separate validation target, not implied by passing Python tests.
 
 ```python
 import os
@@ -168,7 +168,7 @@ client.call("add", scope={"user": "alice"}, text="Alice prefers tea")
 print(client.call("search", scope={"user": "alice"}, query="tea"))
 ```
 
-Set `CORTEXSTATE_API_KEY` in your client process to the generated secret used in the server's mapping. The API assigns the tenant; clients must not supply it. Keys authorize all users within that tenant, so use a trusted backend and enforce end-user authorization there.
+Set `CORTEXSTATE_API_KEY` in your trusted backend process to the generated secret used in the server's mapping. The API assigns the tenant; clients must not supply it. Permission lists restrict endpoint classes, but a key still spans every user in its tenant. Enforce end-user authorization in the backend and do not ship service keys to browsers or agents.
 
 JavaScript (Node.js 20+; source import, not a published npm package):
 

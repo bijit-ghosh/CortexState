@@ -7,21 +7,21 @@ verified against the stated criterion, not merely that documentation exists.
 | Area | Score | Evidence and remaining work |
 | --- | ---: | --- |
 | Core memory behavior | 6/10 | Scoped SQLite records, revision checks, expiry, deletion, and a measured synthetic fixture exist. Add migration guarantees, scale/fault evaluation, and broader independent use. |
-| Deployment security | 3/10 | Bearer keys, bounded request bodies/concurrency, and scoped records exist. Keys grant tenant-wide access; TLS, per-user roles, quotas, rate limits, managed secret rotation, and external security review are missing. |
-| Operational readiness | 3/10 | Backup guidance and a container recipe exist. No schema migration framework, HA store, readiness/metrics endpoint, restore automation, or supported availability target. |
+| Deployment security | 4/10 | Explicit per-key operation permissions, bounded request bodies/concurrency, process-local rate limits, security headers, and scoped records exist. Keys still span all user scopes in their tenant; TLS, end-user authorization, shared quotas, managed rotation, and external security review are missing. |
+| Operational readiness | 4/10 | Backup guidance, a non-root container recipe, liveness/readiness checks, and safe request metadata logs exist. No schema migration framework, HA store, shared metrics, automated restore, load/failure evidence, or supported availability target. |
 | Cross-stack learning | 4/10 | Outcome ledger, held-out scorecard fields, approval, rollback, and deletion exist. Evaluator claims are caller-supplied and not independently verified; no autonomous promotion is provided. |
 | RL capability | 2/10 | Experimental reward helpers/design only. No trainer, rollout pipeline, reward model, policy update, safety study, or RL evaluation result. |
 | Open specification readiness | 3/10 | CAMI 0.1.0 draft, schemas, governance notes, and mapping guidance now exist. No importer/exporter, conformance runner, independent implementation, neutral governance, or adoption evidence. |
 
 ## What “production ready” still requires
 
-Before serving sensitive or high-volume workloads, prioritize per-principal
-authorization, transport security at a supported gateway, tenant quotas and
-rate limits, migrations and restore drills, observability, data retention
-controls, threat modeling, dependency review, and an external security review.
-Then define workload targets and validate them with repeatable load, failure,
-backup/restore, and isolation evaluations. The current server is documented
-for local/private trusted-backend use. No score here certifies it for
+Before serving sensitive or high-volume workloads, put the service behind
+TLS, add authenticated end-user and per-scope authorization, shared tenant
+quotas, migrations and restore drills, observability, data retention controls,
+threat modeling, dependency review, and an external security review. Define
+workload targets and validate them with repeatable load, failure,
+backup/restore, and isolation evaluations. The current server is suitable for
+local/private trusted-backend evaluation. No score here certifies it for
 internet-facing or regulated production deployment.
 
 ## What “open standard” requires

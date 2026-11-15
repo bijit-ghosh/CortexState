@@ -67,7 +67,7 @@ PowerShell:
 ```powershell
 $env:CORTEXSTATE_API_KEY = python -c "import secrets; print(secrets.token_urlsafe(32))"
 $keyMap = @{}
-$keyMap[$env:CORTEXSTATE_API_KEY] = 'demo'
+$keyMap[$env:CORTEXSTATE_API_KEY] = @{ tenant = 'demo'; principal = 'getting-started'; permissions = @('memory:read', 'memory:write') }
 $env:CORTEXSTATE_KEYS = $keyMap | ConvertTo-Json -Compress
 python -m cortexstate --db service.db serve
 ```
@@ -76,11 +76,11 @@ Bash:
 
 ```bash
 export CORTEXSTATE_API_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
-export CORTEXSTATE_KEYS="$(python -c 'import os,json; print(json.dumps({os.environ["CORTEXSTATE_API_KEY"]:"demo"}))')"
+export CORTEXSTATE_KEYS="$(python -c 'import os,json; print(json.dumps({os.environ["CORTEXSTATE_API_KEY"]:{"tenant":"demo","principal":"getting-started","permissions":["memory:read","memory:write"]}}))')"
 python -m cortexstate --db service.db serve
 ```
 
-The server runs in the foreground on `127.0.0.1:8787`; Ctrl+C stops it. A separate client terminal must be provisioned with the same `CORTEXSTATE_API_KEY` through your local secret workflow. New terminals do not automatically inherit changes made in an existing shell. Never commit the key.
+The server runs in the foreground on `127.0.0.1:8787`; Ctrl+C stops it. A separate client terminal must be provisioned with the same `CORTEXSTATE_API_KEY` through your local secret workflow. New terminals do not automatically inherit changes made in an existing shell. Never commit the key. These credentials grant tenant-wide access to the listed operation classes, so only trusted backend code should hold them; authorize each end user in that backend. The built-in rate limit is per key and per process.
 
 ## 5. Call it from your backend
 

@@ -13,9 +13,9 @@ Configure these server environment variables through your secret-management work
 | `OPENAI_API_KEY` | Provider credential; never enter it into the dashboard service-key field |
 | `CORTEXSTATE_EMBEDDING_MODEL` | Optional embedding model ID, for example `text-embedding-3-small` |
 | `CORTEXSTATE_GENERATION_MODEL` | A Responses-compatible model ID available to your account; explicitly selected by you |
-| `CORTEXSTATE_KEYS` | Separate JSON mapping of CortexState service keys to tenant IDs |
+| `CORTEXSTATE_KEYS` | JSON mapping of service keys to `{tenant, principal, permissions}` policies; see [API authorization](API.md#authentication-and-authorization) |
 
-Then run `cortexstate --db semantic.db serve`. Use a new database when enabling/changing embeddings: each store locks its embedding identity and dimensions. The demo intentionally ignores model variables and makes no external calls.
+Then run `cortexstate --db semantic.db serve`. The service requires explicit per-key permissions by default; configure `model:invoke` for keys that need `propose` or `answer`. Use a new database when enabling/changing embeddings: each store locks its embedding identity and dimensions. The demo intentionally ignores model variables and makes no external calls.
 
 Embedding calls occur on add, update, and query when enabled. `propose` calls the generation model to extract facts, validates source references, and returns proposals without storing them. `answer` retrieves context, calls the generation model, and returns text, memory IDs, and reported input/output token counts. It does not execute tools or write memory.
 

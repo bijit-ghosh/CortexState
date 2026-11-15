@@ -3,8 +3,10 @@ import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
+import math
 from pathlib import Path
 import threading
+import time
 from urllib.parse import urlsplit
 
 from .memory import Conflict, NotFound, Scope, string
@@ -12,22 +14,107 @@ from .learning import LearningLedger
 
 log = logging.getLogger("cortexstate")
 
+PERMISSIONS = {
+    "memory:read", "memory:write", "memory:delete", "memory:purge",
+    "learning:read", "learning:record", "learning:propose",
+    "learning:evaluate", "learning:approve", "learning:rollback",
+    "learning:delete", "model:invoke",
+}
 
-def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None):
-    """credentials maps secret -> tenant. Provision secrets outside this process.
+
+def _credential_policy(value):
+    """Normalize a legacy tenant key or a least-privilege service principal."""
+    if isinstance(value, str):
+        # Preserve an explicit migration path; it is rejected by default.
+        string(value, "tenant")
+        return {"tenant": value, "permissions": frozenset({"*"}), "legacy": True}
+    if not isinstance(value, dict) or set(value) - {"tenant", "principal", "permissions"}:
+        raise ValueError("credential values must be a tenant or a principal policy")
+    tenant = string(value.get("tenant"), "tenant")
+    principal = string(value.get("principal", "service"), "principal", 256)
+    if not principal.isascii() or any(ord(character) < 32 or ord(character) == 127 for character in principal):
+        raise ValueError("principal must contain printable ASCII characters only")
+    permissions = value.get("permissions")
+    if not isinstance(permissions, list) or not permissions:
+        raise ValueError("principal credentials require a non-empty permissions list")
+    if any(not isinstance(item, str) or item not in PERMISSIONS for item in permissions):
+        raise ValueError("principal credentials contain an unknown permission")
+    if len(set(permissions)) != len(permissions):
+        raise ValueError("principal permissions must be unique")
+    return {"tenant": tenant, "principal": principal,
+            "permissions": frozenset(permissions), "legacy": False}
+
+
+def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None,
+                requests_per_minute=600, burst=60, require_explicit_permissions=True):
+    """Create the private HTTP adapter.
+
+    ``credentials`` maps secrets to explicit
+    ``{"tenant", "principal", "permissions"}`` policies. Legacy
+    ``secret -> tenant`` values require ``require_explicit_permissions=False``
+    during a controlled migration. Provision secrets outside this process.
+    Rate limits are process-local and apply per API key.
 
     Keys confer access to every user in their tenant: this API is for trusted
     backend services and the trusted operator console, not end-user clients.
+    Explicit permission lists limit operations but do not replace end-user
+    authorization in the trusted backend.
     """
     if not isinstance(credentials, dict) or not credentials:
         raise ValueError("at least one API key is required")
-    for key, tenant in credentials.items():
+    if type(requests_per_minute) is not int or not 1 <= requests_per_minute <= 100000:
+        raise ValueError("requests_per_minute must be an integer from 1 to 100000")
+    if type(burst) is not int or not 1 <= burst <= 10000:
+        raise ValueError("burst must be an integer from 1 to 10000")
+    if type(require_explicit_permissions) is not bool:
+        raise ValueError("require_explicit_permissions must be a boolean")
+    normalized = {}
+    for key, policy in credentials.items():
         string(key, "API key", 512)
         if len(key) < 32 or not key.isascii():
             raise ValueError("API keys must be ASCII and at least 32 characters")
-        string(tenant, "tenant")
-    credentials = dict(credentials)
+        normalized[key] = _credential_policy(policy)
+    if require_explicit_permissions and any(policy["legacy"] for policy in normalized.values()):
+        raise ValueError("explicit permission policies are required by this deployment")
+    credentials = normalized
     learning = LearningLedger(memory)
+    rate_lock = threading.Lock()
+    rate_buckets = {}
+    refill_per_second = requests_per_minute / 60.0
+
+    route_permissions = {
+        "/v1/memories/get": "memory:read",
+        "/v1/memories/list": "memory:read",
+        "/v1/memories/search": "memory:read",
+        "/v1/memories/history": "memory:read",
+        "/v1/memories/context": "memory:read",
+        "/v1/memories/stats": "memory:read",
+        "/v1/memories/add": "memory:write",
+        "/v1/memories/update": "memory:write",
+        "/v1/memories/delete": "memory:delete",
+        "/v1/memories/purge-expired": "memory:purge",
+        "/v1/memories/propose": "model:invoke",
+        "/v1/memories/answer": "model:invoke",
+        "/v1/learning/record": "learning:record",
+        "/v1/learning/list": "learning:read",
+        "/v1/learning/candidates": "learning:read",
+        "/v1/learning/propose": "learning:propose",
+        "/v1/learning/evaluate": "learning:evaluate",
+        "/v1/learning/promote": "learning:approve",
+        "/v1/learning/reject": "learning:approve",
+        "/v1/learning/rollback": "learning:rollback",
+        "/v1/learning/delete-experience": "learning:delete",
+    }
+
+    def allow_request(key, now):
+        with rate_lock:
+            tokens, updated = rate_buckets.get(key, (float(burst), now))
+            tokens = min(float(burst), tokens + max(0.0, now - updated) * refill_per_second)
+            if tokens < 1.0:
+                rate_buckets[key] = (tokens, now)
+                return False, max(1, math.ceil((1.0 - tokens) / refill_per_second))
+            rate_buckets[key] = (tokens - 1.0, now)
+            return True, 0
 
     class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         # Bounded concurrency prevents untrusted connection floods exhausting threads.
@@ -62,18 +149,30 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
         def setup(self):
             super().setup()
             self.connection.settimeout(10)
+            self.request_started = time.monotonic()
+            self.request_principal = "unauthenticated"
 
         def log_message(self, *args):
             # URLs, memory content, and credentials are deliberately not logged.
             pass
 
-        def reply(self, status, payload):
+        def reply(self, status, payload, headers=None):
             body = json.dumps(payload, allow_nan=False).encode()
+            requested_route = urlsplit(self.path).path
+            route = requested_route if requested_route in route_permissions or requested_route in {"/health", "/ready", "/dashboard", "/dashboard/", "/", "/app.js", "/style.css"} else "other"
+            log.info("method=%s route=%s status=%d principal=%r duration_ms=%d",
+                     self.command, route, status, self.request_principal,
+                     int((time.monotonic() - self.request_started) * 1000))
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+            for name, value in (headers or {}).items():
+                self.send_header(name, value)
             self.end_headers()
             self.wfile.write(body)
 
@@ -90,11 +189,21 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                 self.send_header("Content-Length", str(len(body)))
                 self.send_header("Cache-Control", "no-store")
                 self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("X-Frame-Options", "DENY")
+                self.send_header("Referrer-Policy", "no-referrer")
+                self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
                 self.send_header("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
                 self.end_headers()
                 self.wfile.write(body)
             elif self.path == "/health":
                 self.reply(200, {"service": "cortexstate", "status": "alive"})
+            elif self.path == "/ready":
+                try:
+                    with memory._db() as db:
+                        db.execute("SELECT 1").fetchone()
+                    self.reply(200, {"service": "cortexstate", "status": "ready"})
+                except Exception:
+                    self.reply(503, {"service": "cortexstate", "status": "not_ready"})
             else:
                 self.reply(404, {"error": "not_found"})
 
@@ -102,12 +211,26 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
             try:
                 authorization = self.headers.get("Authorization", "")
                 candidate = authorization[7:] if authorization.startswith("Bearer ") else ""
-                tenant = None
+                policy = None
                 for key, value in credentials.items():
                     if hmac.compare_digest(candidate.encode(), key.encode()):
-                        tenant = value
-                if tenant is None:
+                        policy = value
+                if policy is None:
                     return self.reply(401, {"error": "unauthorized"})
+                self.request_principal = policy.get("principal", "legacy-tenant-key")
+                allowed, retry_after = allow_request(candidate, time.monotonic())
+                if not allowed:
+                    self.reply(429, {"error": "rate_limited", "retry_after_seconds": retry_after},
+                               {"Retry-After": str(retry_after)})
+                    return
+                path = urlsplit(self.path)
+                if path.query or path.fragment:
+                    raise ValueError("query strings are not supported")
+                permission = route_permissions.get(path.path)
+                if permission is None:
+                    return self.reply(404, {"error": "not_found"})
+                if "*" not in policy["permissions"] and permission not in policy["permissions"]:
+                    return self.reply(403, {"error": "forbidden"})
                 if self.headers.get("Transfer-Encoding"):
                     return self.reply(400, {"error": "chunked bodies are unsupported"})
                 lengths = self.headers.get_all("Content-Length", [])
@@ -129,10 +252,7 @@ def make_server(memory, credentials, host="127.0.0.1", port=8787, *, model=None)
                 supplied_scope = payload.pop("scope", None)
                 if not isinstance(supplied_scope, dict) or "tenant" in supplied_scope:
                     raise ValueError("scope requires user; tenant is assigned by the API key")
-                scope = Scope(tenant=tenant, **supplied_scope)
-                path = urlsplit(self.path)
-                if path.query or path.fragment:
-                    raise ValueError("query strings are not supported")
+                scope = Scope(tenant=policy["tenant"], **supplied_scope)
                 routes = {"/v1/memories/add": memory.add, "/v1/memories/get": memory.get,
                           "/v1/memories/list": memory.list, "/v1/memories/search": memory.search,
                           "/v1/memories/update": memory.update, "/v1/memories/delete": memory.delete,

@@ -11,6 +11,12 @@ def main():
     serve = sub.add_parser("serve")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8787)
+    serve.add_argument("--requests-per-minute", type=int, default=600,
+                       help="per-key request rate; add an edge rate limit for shared deployments")
+    serve.add_argument("--burst", type=int, default=60,
+                       help="per-key burst capacity")
+    serve.add_argument("--allow-legacy-tenant-keys", action="store_true",
+                       help="temporary migration only; allows tenant-wide access for each key")
     demo = sub.add_parser('demo', help='Start a disposable dashboard with sample memories')
     demo.add_argument('--port', type=int, default=8787)
     for command in ("add", "search", "list", "context", "purge-expired"):
@@ -26,7 +32,7 @@ def main():
         import secrets
         import tempfile
         from pathlib import Path
-        from .server import make_server
+        from .server import PERMISSIONS, make_server
         with tempfile.TemporaryDirectory() as directory:
             memory = Memory(Path(directory) / 'demo.db')
             scope = Scope('demo', 'alice')
@@ -34,7 +40,9 @@ def main():
                          'The support team uses UTC for incident timelines'):
                 memory.add(fact, scope=scope, metadata={'source': 'synthetic-demo'})
             key = secrets.token_urlsafe(32)
-            with make_server(memory, {key: 'demo'}, port=args.port) as server:
+            policy = {"tenant": "demo", "principal": "disposable-demo",
+                      "permissions": sorted(PERMISSIONS)}
+            with make_server(memory, {key: policy}, port=args.port) as server:
                 print(f'Dashboard: http://127.0.0.1:{server.server_port}/dashboard\nDisposable service key: {key}\nUser: alice | Agent: default | Session: persistent\nCtrl+C stops the demo and removes its temporary database.', flush=True)
                 try:
                     server.serve_forever()
@@ -52,7 +60,10 @@ def main():
     if args.command == "serve":
         from .server import make_server
         credentials = json.loads(os.environ.get("CORTEXSTATE_KEYS", "{}"))
-        with make_server(memory, credentials, args.host, args.port, model=model) as server:
+        with make_server(memory, credentials, args.host, args.port, model=model,
+                         requests_per_minute=args.requests_per_minute,
+                         burst=args.burst,
+                         require_explicit_permissions=not args.allow_legacy_tenant_keys) as server:
             print(f"CortexState listening on {args.host}:{server.server_port}", flush=True)
             try:
                 server.serve_forever()

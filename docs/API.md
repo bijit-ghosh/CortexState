@@ -1,6 +1,33 @@
 # API contract
 
-Memory endpoints use `POST /v1/memories/{operation}` and outcome-learning endpoints use `POST /v1/learning/{operation}`. Both require `Authorization: Bearer <key>`, `Content-Type: application/json`, and a single Content-Length header. Maximum body size is 65,536 bytes. Chunked request bodies are unsupported. The unauthenticated `GET /health` endpoint returns liveness only.
+Memory endpoints use `POST /v1/memories/{operation}` and outcome-learning endpoints use `POST /v1/learning/{operation}`. Both require `Authorization: Bearer <key>`, `Content-Type: application/json`, and a single Content-Length header. Maximum body size is 65,536 bytes. Chunked request bodies are unsupported. The unauthenticated `GET /health` endpoint returns liveness only. `GET /ready` runs a lightweight database connectivity check; it does not validate provider availability or prove that the service can meet a workload target.
+
+## Authentication and authorization
+
+`CORTEXSTATE_KEYS` is a JSON object whose values must specify a tenant, audit principal label, and non-empty permission list. For example:
+
+```json
+{"<secret>": {"tenant": "team-a", "principal": "memory-api", "permissions": ["memory:read", "memory:write"]}}
+```
+
+The service rejects legacy `secret -> tenant` mappings by default. The CLI offers `--allow-legacy-tenant-keys` only as a temporary migration option; legacy keys receive every permission. Permission names are `memory:read`, `memory:write`, `memory:delete`, `memory:purge`, `learning:read`, `learning:record`, `learning:propose`, `learning:evaluate`, `learning:approve`, `learning:rollback`, `learning:delete`, and `model:invoke`. `principal` is a log label, not an authenticated user identity. All authorized operations still span every user scope in the assigned tenant, so a trusted backend must authenticate the end user and enforce row-level access before calling CortexState.
+
+| Permission | Routes |
+| --- | --- |
+| `memory:read` | get, list, search, history, context, stats |
+| `memory:write` | add, update |
+| `memory:delete` | delete |
+| `memory:purge` | purge-expired |
+| `model:invoke` | propose, answer |
+| `learning:record` | learning record |
+| `learning:read` | learning list, candidates |
+| `learning:propose` | learning propose |
+| `learning:evaluate` | learning evaluate |
+| `learning:approve` | learning promote, reject |
+| `learning:rollback` | learning rollback |
+| `learning:delete` | learning delete-experience |
+
+Each authenticated key has an in-process token-bucket limit, configurable with `serve --requests-per-minute` (default 600) and `--burst` (default 60). A rejected request returns HTTP 429 and `Retry-After`. Limits reset on restart and are not shared across workers or replicas; enforce aggregate and tenant quotas at a trusted gateway for multi-process deployments.
 
 Every body includes `scope`. The API assigns `tenant` from the credential; callers send:
 
@@ -45,7 +72,7 @@ The promotion gate requires the candidate to match or exceed baseline task succe
 
 Experience `summary` is limited to 4,096 characters. `source` and `measures` are finite JSON objects limited to 4 KiB each. Record only consented, redacted summaries; do not send raw transcripts, secrets, or credentials by default. `event_key` deduplicates a repeated event and returns HTTP 409 if reused with a different payload.
 
-Successful responses use `{"result": ...}`. Errors use `{"error": ...}` with 400/401/404/409/411/413/415/500 statuses. Both clients reject remote plaintext URLs and do not follow HTTP redirects. Python exposes HTTP failures as `urllib.error.HTTPError`; JavaScript errors include `.status`.
+Successful responses use `{"result": ...}`. Errors use `{"error": ...}` with 400/401/403/404/409/411/413/415/429/500/503 statuses. Both clients reject remote plaintext URLs and do not follow HTTP redirects. Python exposes HTTP failures as `urllib.error.HTTPError`; JavaScript errors include `.status`.
 
 Search also accepts `ranking="overlap"` (default) or `ranking="bm25"`. `context` retains the default overlap ranking. Generation endpoints return HTTP 503 when no generation model is configured. Propose never stores its output; review it and call add explicitly. Provider calls may incur costs. The static console assets are public; every data operation remains authenticated.
 

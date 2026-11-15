@@ -4,7 +4,7 @@ services:
     ports:
       - "127.0.0.1:8787:8787"
     environment:
-      CORTEXSTATE_KEYS: ${CORTEXSTATE_KEYS:?Set CORTEXSTATE_KEYS to a JSON mapping of secrets to tenants}
+      CORTEXSTATE_KEYS: ${CORTEXSTATE_KEYS:?Set CORTEXSTATE_KEYS to a JSON mapping of secrets to principal policies}
     volumes:
       - cortexstate-data:/data
     restart: unless-stopped
