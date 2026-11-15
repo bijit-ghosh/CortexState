@@ -7,10 +7,15 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from cortexstate import Memory
 from cortexstate.client import Client
-from cortexstate.server import make_server
+from cortexstate.server import PERMISSIONS, make_server
 
 KEY_A = "a" * 40
 KEY_B = "b" * 40
+
+
+def service_key(tenant):
+    return {"tenant": tenant, "principal": "api-test",
+            "permissions": sorted(PERMISSIONS)}
 
 
 class ApiTests(unittest.TestCase):
@@ -18,7 +23,9 @@ class ApiTests(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.memory = Memory(Path(cls.tmp.name) / "api.db")
-        cls.server = make_server(cls.memory, {KEY_A: "tenant-a", KEY_B: "tenant-b"}, port=0)
+        cls.server = make_server(cls.memory, {
+            KEY_A: service_key("tenant-a"), KEY_B: service_key("tenant-b"),
+        }, port=0)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
         cls.url = f"http://127.0.0.1:{cls.server.server_port}"
@@ -75,9 +82,11 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(caught.exception.code, 400)
 
     def test_server_requires_strong_key_format(self):
-        for credentials in ({}, {"short": "tenant"}):
+        for credentials in ({}, {"short": service_key("tenant")}):
             with self.assertRaises(ValueError):
                 make_server(self.memory, credentials, port=0)
+        with self.assertRaises(ValueError):
+            make_server(self.memory, {KEY_A: 'tenant'}, port=0)
 
     def test_remote_client_requires_tls(self):
         with self.assertRaises(ValueError):
@@ -88,7 +97,56 @@ class ApiTests(unittest.TestCase):
             with urlopen(self.url + path, timeout=5) as response:
                 self.assertEqual(response.status, 200)
                 self.assertIn("frame-ancestors 'none'", response.headers['Content-Security-Policy'])
+                self.assertEqual(response.headers['X-Frame-Options'], 'DENY')
                 self.assertNotIn(KEY_A.encode(), response.read())
+
+    def test_readiness_is_database_only_and_reports_ready(self):
+        with urlopen(self.url + '/ready', timeout=5) as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(json.load(response), {
+                'service': 'cortexstate', 'status': 'ready',
+            })
+
+    def test_service_principal_permissions_are_enforced(self):
+        key = 'r' * 40
+        server = make_server(self.memory, {key: {
+            'tenant': 'restricted',
+            'principal': 'readonly-dashboard',
+            'permissions': ['memory:read'],
+        }}, port=0, require_explicit_permissions=True)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = Client(f'http://127.0.0.1:{server.server_port}', key)
+            self.assertEqual(client.list(scope={'user': 'alice'}), [])
+            with self.assertRaises(HTTPError) as caught:
+                client.add('must not write', scope={'user': 'alice'})
+            self.assertEqual(caught.exception.code, 403)
+            self.assertEqual(client.list(scope={'user': 'alice'}), [])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_per_key_rate_limit_returns_retry_after(self):
+        key = 'l' * 40
+        server = make_server(self.memory, {key: {
+            'tenant': 'rate-limited', 'permissions': ['memory:read'],
+        }}, port=0, requests_per_minute=1, burst=1,
+                             require_explicit_permissions=True)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = Client(f'http://127.0.0.1:{server.server_port}', key)
+            client.stats(scope={'user': 'alice'})
+            with self.assertRaises(HTTPError) as caught:
+                client.stats(scope={'user': 'alice'})
+            self.assertEqual(caught.exception.code, 429)
+            self.assertGreaterEqual(int(caught.exception.headers['Retry-After']), 1)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
 
     def test_named_sdk_methods_and_stats(self):
         scope = {'user': 'sdk'}

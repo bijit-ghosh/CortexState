@@ -16,7 +16,7 @@ This table describes CortexState's shipped surface and boundaries. It makes no c
 | Conversation extraction | Validated review proposals, optional OpenAI adapter, and model-backed answer endpoint; external calls require credentials |
 | Metadata filtering | Implemented: top-level equality |
 | Context budgeting | Implemented: exact characters; model token budgeting not included |
-| Authentication | Implemented: static tenant-scoped backend keys |
+| Authentication and operation authorization | Implemented: static backend keys with explicit per-key operation permissions, tenant assignment, process-local rate limits, and security response headers; user-level authorization remains with the trusted backend |
 | Reproducible eval | Implemented: small public synthetic regression fixture |
 | Deployment learning ledger | Implemented: consent-asserted, scoped outcome records, evidence-linked lesson candidates, scorecards, approval, rejection, rollback, and deletion |
 | Model/harness/skill neutrality | Implemented at the HTTP data/API boundary; no specific provider or agent framework is required, but integrations must call the API |
@@ -31,7 +31,7 @@ This table describes CortexState's shipped surface and boundaries. It makes no c
 | Automatic fact conflict resolution | Not implemented |
 | MCP / framework-specific adapters | Not bundled; use the common HTTP API from any compatible runtime |
 | Distributed storage / HA / online migrations | Not implemented |
-| SSO / per-user RBAC / key management UI | Not implemented |
+| SSO / per-user RBAC / key management UI / distributed quotas | Not implemented |
 | LoCoMo / LongMemEval / model benchmarks | Not executed; no comparative performance claims |
 
 ## Next milestones and evidence required
